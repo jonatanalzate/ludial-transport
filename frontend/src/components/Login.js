@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-const secureApiUrl = API_URL.replace(/^http:\/\//i, 'https://').replace(/\/$/, '');
+const baseURL = API_URL.replace(/^http:/, 'https:');
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -16,6 +16,8 @@ function Login() {
     setError('');
 
     try {
+      console.log('Intentando login con URL:', `${baseURL}/auth/token`);
+
       // Crear FormData para enviar las credenciales
       const formData = new URLSearchParams();
       formData.append('username', username);
@@ -26,14 +28,13 @@ function Login() {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Accept': 'application/json'
-        },
-        withCredentials: true
+        }
       };
 
       // Realizar la solicitud de login
       const response = await axios.post(
-        `${secureApiUrl}/auth/token`,
-        formData,
+        `${baseURL}/auth/token`,
+        formData.toString(),
         config
       );
 
@@ -43,9 +44,9 @@ function Login() {
         navigate('/dashboard');
       }
     } catch (error) {
-      console.error('Error en login:', error);
+      console.error('Error de login:', error);
       if (error.response) {
-        setError('Credenciales inválidas o error en el servidor');
+        setError('Credenciales inválidas');
       } else if (error.request) {
         setError('Error de conexión con el servidor');
       } else {
