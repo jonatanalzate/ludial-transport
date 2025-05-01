@@ -30,7 +30,10 @@ load_dotenv()
 app = FastAPI(
     title="Sistema de Transporte",
     description="API para sistema de gestión de transporte",
-    version="1.0.0"
+    version="1.0.0",
+    openapi_url="/openapi.json",
+    docs_url="/docs",
+    redoc_url="/redoc"
 )
 
 # Configuración de CORS
@@ -63,6 +66,16 @@ def read_root():
 
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
+    # Log de la petición entrante
+    logger.info(f"Request: {request.method} {request.url}")
+    logger.info(f"Headers: {request.headers}")
+    
     response = await call_next(request)
+    
+    # Log de la respuesta
+    logger.info(f"Response status: {response.status_code}")
+    logger.info(f"Response headers: {response.headers}")
+    
+    # Agregar headers de seguridad
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     return response
