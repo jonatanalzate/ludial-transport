@@ -10,9 +10,13 @@ from pydantic import BaseModel
 from datetime import datetime
 import logging
 import traceback
+from sqlalchemy import text
 
-# Configurar logging
-logging.basicConfig(level=logging.INFO)
+# Configurar logging con más detalle
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 class JourneyBase(BaseModel):
@@ -103,24 +107,52 @@ async def crear_trayecto(trayecto: JourneyCreate, db: Session = Depends(get_db))
 @router.get("", response_model=List[JourneyResponse])
 async def listar_trayectos(request: Request, db: Session = Depends(get_db)):
     try:
-        logger.info(f"Listando trayectos - URL: {request.url}")
-        logger.info(f"Headers: {request.headers}")
+        logger.info("=== Iniciando listado de trayectos ===")
+        logger.info(f"URL: {request.url}")
+        logger.info(f"Headers: {dict(request.headers)}")
         
+        # Verificar conexión a la base de datos
+        try:
+            db.execute(text("SELECT 1"))
+            logger.info("Conexión a la base de datos verificada")
+        except Exception as e:
+            logger.error(f"Error de conexión a la base de datos: {str(e)}")
+            raise HTTPException(status_code=500, detail="Error de conexión a la base de datos")
+        
+        # Contar total de registros en la tabla
+        total_count = db.query(Journey).count()
+        logger.info(f"Total de registros en la tabla Journey: {total_count}")
+        
+        # Obtener todos los trayectos
         trayectos = db.query(Journey).all()
-        logger.info(f"Encontrados {len(trayectos)} trayectos")
+        logger.info(f"Trayectos encontrados: {len(trayectos)}")
+        
+        # Verificar estructura de cada trayecto
+        for t in trayectos:
+            logger.info(f"Trayecto ID: {t.id}")
+            logger.info(f"Estado: {t.estado}")
+            logger.info(f"Conductor ID: {t.conductor_id}")
+            logger.info(f"Vehículo ID: {t.vehiculo_id}")
+            logger.info(f"Ruta ID: {t.ruta_id}")
         
         response = []
         for t in trayectos:
             try:
-                response.append(prepare_journey_response(t, db))
+                journey_response = prepare_journey_response(t, db)
+                response.append(journey_response)
+                logger.info(f"Trayecto {t.id} procesado correctamente")
             except Exception as e:
                 logger.error(f"Error procesando trayecto {t.id}: {str(e)}")
                 logger.error(traceback.format_exc())
                 continue
         
+        logger.info(f"Total de trayectos procesados: {len(response)}")
+        logger.info("=== Fin del listado de trayectos ===")
         return response
+        
     except Exception as e:
-        logger.error(f"Error al listar trayectos: {str(e)}")
+        logger.error("=== Error en listado de trayectos ===")
+        logger.error(f"Error: {str(e)}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
