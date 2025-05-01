@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 import os
 from dotenv import load_dotenv
 from .database import engine, Base
@@ -27,6 +28,16 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
+class NoRedirectMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        # Si es una redirección y la URL destino es HTTP, convertirla a HTTPS
+        if response.status_code in [301, 302, 307, 308]:
+            location = response.headers.get('location', '')
+            if location.startswith('http://'):
+                response.headers['location'] = location.replace('http://', 'https://')
+        return response
+
 app = FastAPI(
     title="Sistema de Transporte",
     description="API para sistema de gestión de transporte",
@@ -35,6 +46,9 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+# Middleware para manejar redirecciones
+app.add_middleware(NoRedirectMiddleware)
 
 # Configuración de CORS
 app.add_middleware(
@@ -49,13 +63,9 @@ app.add_middleware(
 # Crear las tablas en la base de datos
 Base.metadata.create_all(bind=engine)
 
-# Incluir los routers
-app.include_router(auth_router)
-app.include_router(users_router)
-app.include_router(drivers_router)
-app.include_router(vehicles_router)
-app.include_router(routes_router)
-app.include_router(journeys_router)
+# Incluir los routers con configuración para no redirigir barras al final
+for router in [auth_router, users_router, drivers_router, vehicles_router, routes_router, journeys_router]:
+    app.include_router(router)
 
 @app.get("/")
 def read_root():
