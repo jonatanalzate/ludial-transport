@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import RedirectResponse
 import os
 from dotenv import load_dotenv
 from .database import engine, Base
@@ -23,11 +25,22 @@ import socket
 
 load_dotenv()
 
+class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        if request.headers.get('x-forwarded-proto', 'http') == 'http':
+            url = request.url
+            url = url.replace(scheme='https')
+            return RedirectResponse(url=str(url))
+        return await call_next(request)
+
 app = FastAPI(
     title="Sistema de Transporte",
     description="API para sistema de gestión de transporte",
     version="1.0.0"
 )
+
+# Middleware para forzar HTTPS
+app.add_middleware(HTTPSRedirectMiddleware)
 
 # Obtener los orígenes permitidos de las variables de entorno o usar valores predeterminados
 ALLOWED_ORIGINS = [
@@ -47,6 +60,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Forzar la recreación de todas las tablas
