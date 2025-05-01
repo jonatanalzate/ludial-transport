@@ -1,12 +1,17 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// Función para asegurar que la URL use HTTPS
+const ensureHttps = (url) => {
+  if (process.env.NODE_ENV === 'production') {
+    return url.replace(/^http:\/\//i, 'https://');
+  }
+  return url;
+};
 
-// Asegurarse de que la URL siempre use HTTPS en producción
-const secureApiUrl = API_URL.replace('http://', 'https://');
+const API_URL = ensureHttps(process.env.REACT_APP_API_URL || 'http://localhost:8000');
 
 const axiosInstance = axios.create({
-  baseURL: secureApiUrl,
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -16,16 +21,22 @@ const axiosInstance = axios.create({
   }
 });
 
-// Interceptor para agregar el token a todas las peticiones
+// Interceptor para agregar el token y asegurar HTTPS en todas las peticiones
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // Asegurarse de que la URL use HTTPS
-    if (config.url && config.url.startsWith('http://')) {
-      config.url = config.url.replace('http://', 'https://');
+    
+    // Asegurar HTTPS en producción
+    if (process.env.NODE_ENV === 'production') {
+      if (config.url && config.url.startsWith('http://')) {
+        config.url = config.url.replace(/^http:\/\//i, 'https://');
+      }
+      if (config.baseURL && config.baseURL.startsWith('http://')) {
+        config.baseURL = config.baseURL.replace(/^http:\/\//i, 'https://');
+      }
     }
     return config;
   },
@@ -41,9 +52,7 @@ axiosInstance.interceptors.response.use(
     if (error.response && error.response.status === 307) {
       const newUrl = error.response.headers.location;
       if (newUrl) {
-        // Asegurarse de que la nueva URL use HTTPS
-        const secureUrl = newUrl.replace('http://', 'https://');
-        // Hacer una nueva petición a la URL segura
+        const secureUrl = ensureHttps(newUrl);
         const config = {
           ...error.config,
           url: secureUrl,
