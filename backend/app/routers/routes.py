@@ -30,23 +30,24 @@ class RoutesCreateBulk(BaseModel):
 
 router = APIRouter(
     prefix="/rutas",
-    tags=["Rutas"]
+    tags=["Rutas"],
+    redirect_slashes=False
 )
 
-@router.post("/", response_model=RouteResponse, dependencies=[Depends(check_admin_access)])
-def crear_ruta(ruta: RouteCreate, db: Session = Depends(get_db)):
+@router.post("", response_model=RouteResponse, dependencies=[Depends(check_admin_access)])
+async def crear_ruta(ruta: RouteCreate, db: Session = Depends(get_db)):
     db_ruta = Route(**ruta.dict())
     db.add(db_ruta)
     db.commit()
     db.refresh(db_ruta)
     return db_ruta
 
-@router.get("/", response_model=List[RouteResponse])
-def listar_rutas(db: Session = Depends(get_db)):
+@router.get("", response_model=List[RouteResponse])
+async def listar_rutas(db: Session = Depends(get_db)):
     return db.query(Route).all()
 
 @router.get("/{ruta_id}", response_model=RouteResponse)
-def obtener_ruta(ruta_id: int, db: Session = Depends(get_db)):
+async def obtener_ruta(ruta_id: int, db: Session = Depends(get_db)):
     ruta = db.query(Route).filter(Route.id == ruta_id).first()
     if ruta is None:
         raise HTTPException(status_code=404, detail="Ruta no encontrada")
@@ -54,7 +55,7 @@ def obtener_ruta(ruta_id: int, db: Session = Depends(get_db)):
 
 @router.put("/{ruta_id}", response_model=RouteResponse, 
            dependencies=[Depends(check_role_access(["administrador", "supervisor"]))])
-def actualizar_ruta(ruta_id: int, ruta: RouteCreate, db: Session = Depends(get_db)):
+async def actualizar_ruta(ruta_id: int, ruta: RouteCreate, db: Session = Depends(get_db)):
     db_ruta = db.query(Route).filter(Route.id == ruta_id).first()
     if db_ruta is None:
         raise HTTPException(status_code=404, detail="Ruta no encontrada")
@@ -67,7 +68,7 @@ def actualizar_ruta(ruta_id: int, ruta: RouteCreate, db: Session = Depends(get_d
     return db_ruta
 
 @router.delete("/{ruta_id}")
-def eliminar_ruta(ruta_id: int, db: Session = Depends(get_db)):
+async def eliminar_ruta(ruta_id: int, db: Session = Depends(get_db)):
     db_ruta = db.query(Route).filter(Route.id == ruta_id).first()
     if db_ruta is None:
         raise HTTPException(status_code=404, detail="Ruta no encontrada")
@@ -77,7 +78,7 @@ def eliminar_ruta(ruta_id: int, db: Session = Depends(get_db)):
     return {"message": "Ruta eliminada"}
 
 @router.post("/bulk", response_model=List[RouteResponse])
-def crear_rutas_bulk(rutas: RoutesCreateBulk, db: Session = Depends(get_db)):
+async def crear_rutas_bulk(rutas: RoutesCreateBulk, db: Session = Depends(get_db)):
     db_rutas = []
     for ruta in rutas.rutas:
         db_ruta = Route(

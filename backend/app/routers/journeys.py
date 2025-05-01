@@ -45,7 +45,7 @@ class FinalizarTrayectoRequest(BaseModel):
 router = APIRouter(
     prefix="/trayectos",
     tags=["Trayectos"],
-    redirect_slashes=False  # Evitar redirecciones por barras al final
+    redirect_slashes=False
 )
 
 def prepare_journey_response(trayecto: Journey) -> Journey:
@@ -60,16 +60,16 @@ def prepare_journey_response(trayecto: Journey) -> Journey:
     
     return trayecto
 
-@router.post("/", response_model=JourneyResponse)
-def crear_trayecto(trayecto: JourneyCreate, db: Session = Depends(get_db)):
+@router.post("", response_model=JourneyResponse)
+async def crear_trayecto(trayecto: JourneyCreate, db: Session = Depends(get_db)):
     db_trayecto = Journey(**trayecto.dict())
     db.add(db_trayecto)
     db.commit()
     db.refresh(db_trayecto)
     return prepare_journey_response(db_trayecto)
 
-@router.get("/", response_model=List[JourneyResponse])
-def listar_trayectos(request: Request, db: Session = Depends(get_db)):
+@router.get("", response_model=List[JourneyResponse])
+async def listar_trayectos(request: Request, db: Session = Depends(get_db)):
     try:
         logger.info(f"Listando trayectos - URL: {request.url}")
         logger.info(f"Headers: {request.headers}")
@@ -83,7 +83,7 @@ def listar_trayectos(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/{trayecto_id}/iniciar", response_model=JourneyResponse)
-def iniciar_trayecto(trayecto_id: int, db: Session = Depends(get_db)):
+async def iniciar_trayecto(trayecto_id: int, db: Session = Depends(get_db)):
     trayecto = db.query(Journey).filter(Journey.id == trayecto_id).first()
     if not trayecto:
         raise HTTPException(status_code=404, detail="Trayecto no encontrado")
@@ -98,7 +98,7 @@ def iniciar_trayecto(trayecto_id: int, db: Session = Depends(get_db)):
     return prepare_journey_response(trayecto)
 
 @router.post("/{trayecto_id}/finalizar", response_model=JourneyResponse)
-def finalizar_trayecto(trayecto_id: int, datos: FinalizarTrayectoRequest, db: Session = Depends(get_db)):
+async def finalizar_trayecto(trayecto_id: int, datos: FinalizarTrayectoRequest, db: Session = Depends(get_db)):
     trayecto = db.query(Journey).filter(Journey.id == trayecto_id).first()
     if not trayecto:
         raise HTTPException(status_code=404, detail="Trayecto no encontrado")
@@ -126,7 +126,7 @@ def finalizar_trayecto(trayecto_id: int, datos: FinalizarTrayectoRequest, db: Se
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{trayecto_id}", response_model=JourneyResponse)
-def obtener_trayecto(trayecto_id: int, db: Session = Depends(get_db)):
+async def obtener_trayecto(trayecto_id: int, db: Session = Depends(get_db)):
     trayecto = db.query(Journey).filter(Journey.id == trayecto_id).first()
     if trayecto is None:
         raise HTTPException(status_code=404, detail="Trayecto no encontrado")
