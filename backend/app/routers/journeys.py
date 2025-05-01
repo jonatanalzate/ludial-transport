@@ -40,12 +40,21 @@ class JourneyUpdate(BaseModel):
     fecha_fin: Optional[datetime] = None
     estado: Optional[str] = None
 
-class JourneyResponse(JourneyBase):
+class JourneyResponse(BaseModel):
     id: int
-    nombre_ruta: Optional[str]
-    nombre_conductor: Optional[str]
-    placa_vehiculo: Optional[str]
-    duracion_actual: Optional[int]
+    conductor_id: int
+    vehiculo_id: int
+    ruta_id: int
+    estado: str
+    fecha_creacion: datetime
+    fecha_salida: Optional[datetime] = None
+    fecha_llegada: Optional[datetime] = None
+    duracion_minutos: Optional[int] = None
+    cantidad_pasajeros: Optional[int] = None
+    nombre_ruta: str
+    nombre_conductor: str
+    placa_vehiculo: str
+    duracion_actual: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -125,7 +134,7 @@ async def crear_trayecto(request: Request, journey: JourneyCreate, db: Session =
             conductor_id=journey.conductor_id,
             vehiculo_id=journey.vehiculo_id,
             ruta_id=journey.ruta_id,
-            estado=EstadoTrayecto.PENDIENTE,
+            estado=EstadoTrayecto.PROGRAMADO,
             fecha_creacion=datetime.utcnow()
         )
         
