@@ -13,11 +13,13 @@ const debugConfig = (config) => {
   return config;
 };
 
-// Función para asegurar que la URL use HTTPS y no tenga espacios
+// Función para asegurar que la URL use HTTPS y no tenga espacios ni barra al final
 const ensureHttps = (url) => {
   if (!url) return url;
-  // Eliminar espacios y asegurar HTTPS
-  return url.trim().replace(/^http:\/\//i, 'https://');
+  // Eliminar espacios, asegurar HTTPS y remover barra al final
+  return url.trim()
+    .replace(/^http:\/\//i, 'https://')
+    .replace(/\/$/, '');
 };
 
 const API_URL = ensureHttps(process.env.REACT_APP_API_URL || 'http://localhost:8000');
@@ -31,9 +33,9 @@ const axiosInstance = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  withCredentials: true, // Habilitar credenciales para CORS
+  withCredentials: true,
   maxRedirects: 5,
-  timeout: 15000, // Aumentado a 15 segundos
+  timeout: 15000,
   validateStatus: function (status) {
     return status >= 200 && status < 400;
   }
@@ -47,7 +49,7 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Asegurar HTTPS en todas las URLs
+    // Asegurar HTTPS en todas las URLs y remover barras al final
     if (config.url && typeof config.url === 'string') {
       config.url = ensureHttps(config.url);
     }
@@ -76,7 +78,6 @@ axiosInstance.interceptors.request.use(
 // Interceptor para manejar redirecciones y errores
 axiosInstance.interceptors.response.use(
   (response) => {
-    // Log de respuesta exitosa en desarrollo
     if (process.env.NODE_ENV === 'development') {
       console.log('Response:', {
         status: response.status,
@@ -87,7 +88,6 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   async (error) => {
-    // Log detallado del error
     console.error('Error en la respuesta:', {
       message: error.message,
       config: error.config,
@@ -99,27 +99,31 @@ axiosInstance.interceptors.response.use(
     });
 
     if (error.response) {
-      // Manejar redirección 307
-      if (error.response.status === 307) {
-        const newUrl = error.response.headers.location;
+      // Manejar redirecciones (301, 302, 307, 308)
+      if ([301, 302, 307, 308].includes(error.response.status)) {
+        let newUrl = error.response.headers.location;
         if (newUrl) {
           console.log('Redirigiendo a:', newUrl);
+          // Asegurar HTTPS y remover barra al final
           const secureUrl = ensureHttps(newUrl);
+          console.log('URL segura:', secureUrl);
+          
           // Crear una nueva configuración preservando los headers originales
           const newConfig = {
             ...error.config,
             url: secureUrl,
+            method: error.config.method,
             headers: {
               ...error.config.headers,
               'Accept': 'application/json',
               'Content-Type': 'application/json'
             }
           };
+          
           return axiosInstance(newConfig);
         }
       }
 
-      // Manejar error de autenticación
       if (error.response.status === 401) {
         localStorage.removeItem('token');
         window.location.href = '/login';
@@ -127,12 +131,10 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    // Manejar error de red
     if (error.message === 'Network Error') {
       console.log('Reintentando petición después de error de red...');
       return new Promise(resolve => {
         setTimeout(() => {
-          // Asegurar que la configuración use HTTPS
           const retryConfig = {
             ...error.config,
             url: ensureHttps(error.config.url),

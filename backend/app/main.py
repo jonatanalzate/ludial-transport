@@ -1,7 +1,8 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import RedirectResponse
+from starlette.datastructures import URL
 import os
 from dotenv import load_dotenv
 from .database import engine, Base
@@ -26,11 +27,20 @@ import socket
 load_dotenv()
 
 class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
-        if request.headers.get('x-forwarded-proto', 'http') == 'http':
-            url = request.url
-            url = url.replace(scheme='https')
-            return RedirectResponse(url=str(url))
+    async def dispatch(self, request: Request, call_next):
+        if request.url.scheme == "http":
+            url = str(request.url)
+            if url.endswith('/'):  # Remove trailing slash
+                url = url.rstrip('/')
+            url = url.replace("http://", "https://", 1)
+            return RedirectResponse(url, status_code=301)
+        return await call_next(request)
+
+class TrailingSlashMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path != "/" and request.url.path.endswith("/"):
+            url = str(request.url)
+            return RedirectResponse(url.rstrip("/"), status_code=308)
         return await call_next(request)
 
 app = FastAPI(
@@ -39,8 +49,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Middleware para forzar HTTPS
+# Agregar middleware para forzar HTTPS y remover barras al final
 app.add_middleware(HTTPSRedirectMiddleware)
+app.add_middleware(TrailingSlashMiddleware)
 
 # Obtener los orígenes permitidos de las variables de entorno o usar valores predeterminados
 ALLOWED_ORIGINS = [
@@ -60,7 +71,8 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"]
+    expose_headers=["*"],
+    max_age=3600,
 )
 
 # Forzar la recreación de todas las tablas
