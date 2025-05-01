@@ -28,7 +28,9 @@ class JourneyBase(BaseModel):
     estado: str
 
 class JourneyCreate(JourneyBase):
-    pass
+    conductor_id: int
+    vehiculo_id: int
+    ruta_id: int
 
 class JourneyUpdate(BaseModel):
     conductor_id: Optional[int] = None
@@ -92,15 +94,68 @@ def prepare_journey_response(trayecto: Journey, db: Session) -> dict:
         raise
 
 @router.post("", response_model=JourneyResponse)
-async def crear_trayecto(trayecto: JourneyCreate, db: Session = Depends(get_db)):
+async def crear_trayecto(request: Request, journey: JourneyCreate, db: Session = Depends(get_db)):
     try:
-        db_trayecto = Journey(**trayecto.dict())
-        db.add(db_trayecto)
-        db.commit()
-        db.refresh(db_trayecto)
-        return prepare_journey_response(db_trayecto, db)
+        logger.info("=== Iniciando creación de trayecto ===")
+        logger.info(f"Datos recibidos: {journey.dict()}")
+        
+        # Validar conductor
+        conductor = db.query(Driver).filter(Driver.id == journey.conductor_id).first()
+        if not conductor:
+            logger.error(f"Conductor no encontrado: {journey.conductor_id}")
+            raise HTTPException(status_code=404, detail=f"Conductor {journey.conductor_id} no encontrado")
+        logger.info(f"Conductor validado: {conductor.id}")
+        
+        # Validar vehículo
+        vehiculo = db.query(Vehicle).filter(Vehicle.id == journey.vehiculo_id).first()
+        if not vehiculo:
+            logger.error(f"Vehículo no encontrado: {journey.vehiculo_id}")
+            raise HTTPException(status_code=404, detail=f"Vehículo {journey.vehiculo_id} no encontrado")
+        logger.info(f"Vehículo validado: {vehiculo.id}")
+        
+        # Validar ruta
+        ruta = db.query(Route).filter(Route.id == journey.ruta_id).first()
+        if not ruta:
+            logger.error(f"Ruta no encontrada: {journey.ruta_id}")
+            raise HTTPException(status_code=404, detail=f"Ruta {journey.ruta_id} no encontrada")
+        logger.info(f"Ruta validada: {ruta.id}")
+        
+        # Crear trayecto
+        new_journey = Journey(
+            conductor_id=journey.conductor_id,
+            vehiculo_id=journey.vehiculo_id,
+            ruta_id=journey.ruta_id,
+            estado=EstadoTrayecto.pendiente,
+            fecha_creacion=datetime.utcnow()
+        )
+        
+        try:
+            db.add(new_journey)
+            db.commit()
+            db.refresh(new_journey)
+            logger.info(f"Trayecto creado exitosamente con ID: {new_journey.id}")
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error al guardar en la base de datos: {str(e)}")
+            logger.error(traceback.format_exc())
+            raise HTTPException(status_code=500, detail="Error al guardar el trayecto")
+        
+        # Preparar respuesta
+        try:
+            response = prepare_journey_response(new_journey, db)
+            logger.info("Respuesta preparada exitosamente")
+            return response
+        except Exception as e:
+            logger.error(f"Error al preparar la respuesta: {str(e)}")
+            logger.error(traceback.format_exc())
+            raise HTTPException(status_code=500, detail="Error al preparar la respuesta")
+            
+    except HTTPException as he:
+        logger.error(f"HTTP Exception: {str(he.detail)}")
+        raise he
     except Exception as e:
-        logger.error(f"Error creando trayecto: {str(e)}")
+        logger.error("=== Error en creación de trayecto ===")
+        logger.error(f"Error: {str(e)}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
