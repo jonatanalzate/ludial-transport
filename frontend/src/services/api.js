@@ -1,169 +1,51 @@
 import axios from 'axios';
 
-// Función para depurar la configuración
-const debugConfig = (config) => {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('API Config:', {
-      baseURL: config.baseURL,
-      url: config.url,
-      method: config.method,
-      headers: config.headers
-    });
-  }
-  return config;
-};
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-// Función para asegurar que la URL use HTTPS y no tenga espacios ni barra al final
-const ensureHttps = (url) => {
-  if (!url) return url;
-  // Eliminar espacios, asegurar HTTPS y remover barra al final
-  return url.trim()
-    .replace(/^http:\/\//i, 'https://')
-    .replace(/\/$/, '');
-};
-
-const API_URL = ensureHttps(process.env.REACT_APP_API_URL || 'http://localhost:8000');
-
-console.log('API URL:', API_URL);
-console.log('NODE_ENV:', process.env.NODE_ENV);
+// Asegurar HTTPS en producción
+const baseURL = process.env.NODE_ENV === 'production' 
+  ? API_URL.replace('http://', 'https://')
+  : API_URL;
 
 const axiosInstance = axios.create({
-  baseURL: API_URL,
+  baseURL,
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-  withCredentials: true,
-  maxRedirects: 5,
-  timeout: 15000,
-  validateStatus: function (status) {
-    return status >= 200 && status < 400;
+    'Content-Type': 'application/json'
   }
 });
 
-// Interceptor para agregar el token y asegurar HTTPS en todas las peticiones
+// Interceptor para agregar el token a todas las peticiones
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
-    // Asegurar HTTPS en todas las URLs y remover barras al final
-    if (config.url && typeof config.url === 'string') {
-      config.url = ensureHttps(config.url);
-    }
-    if (config.baseURL && typeof config.baseURL === 'string') {
-      config.baseURL = ensureHttps(config.baseURL);
-    }
-
-    // Log de la configuración en desarrollo
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Request Config:', {
-        url: config.url,
-        baseURL: config.baseURL,
-        method: config.method,
-        headers: config.headers
-      });
-    }
-
     return config;
   },
   (error) => {
-    console.error('Error en interceptor de request:', error);
     return Promise.reject(error);
   }
 );
 
-// Interceptor para manejar redirecciones y errores
+// Interceptor para manejar errores de autenticación
 axiosInstance.interceptors.response.use(
-  (response) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Response:', {
-        status: response.status,
-        data: response.data,
-        headers: response.headers
-      });
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
     }
-    return response;
-  },
-  async (error) => {
-    console.error('Error en la respuesta:', {
-      message: error.message,
-      config: error.config,
-      response: error.response ? {
-        status: error.response.status,
-        headers: error.response.headers,
-        data: error.response.data
-      } : 'No response'
-    });
-
-    if (error.response) {
-      // Manejar redirecciones (301, 302, 307, 308)
-      if ([301, 302, 307, 308].includes(error.response.status)) {
-        let newUrl = error.response.headers.location;
-        if (newUrl) {
-          console.log('Redirigiendo a:', newUrl);
-          // Asegurar HTTPS y remover barra al final
-          const secureUrl = ensureHttps(newUrl);
-          console.log('URL segura:', secureUrl);
-          
-          // Crear una nueva configuración preservando los headers originales
-          const newConfig = {
-            ...error.config,
-            url: secureUrl,
-            method: error.config.method,
-            headers: {
-              ...error.config.headers,
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-            }
-          };
-          
-          return axiosInstance(newConfig);
-        }
-      }
-
-      if (error.response.status === 401) {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
-        return Promise.reject(error);
-      }
-    }
-
-    if (error.message === 'Network Error') {
-      console.log('Reintentando petición después de error de red...');
-      return new Promise(resolve => {
-        setTimeout(() => {
-          const retryConfig = {
-            ...error.config,
-            url: ensureHttps(error.config.url),
-            baseURL: ensureHttps(error.config.baseURL)
-          };
-          resolve(axiosInstance(retryConfig));
-        }, 2000);
-      });
-    }
-
     return Promise.reject(error);
   }
 );
 
 export const api = {
   // Trayectos
-  getTrayectos: async () => {
-    try {
-      const response = await axiosInstance.get('/trayectos');
-      return response;
-    } catch (error) {
-      console.error('Error en getTrayectos:', error.response || error);
-      throw error;
-    }
-  },
+  getTrayectos: () => axiosInstance.get('/trayectos'),
   createTrayecto: (data) => axiosInstance.post('/trayectos', data),
   iniciarTrayecto: (id) => axiosInstance.post(`/trayectos/${id}/iniciar`),
   finalizarTrayecto: (id, cantidad_pasajeros) => {
-    console.log('Finalizando trayecto:', { id, cantidad_pasajeros });
     return axiosInstance.post(`/trayectos/${id}/finalizar`, { 
       cantidad_pasajeros: parseInt(cantidad_pasajeros) 
     });
