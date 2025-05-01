@@ -2,11 +2,18 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
+// Asegurarse de que la URL siempre use HTTPS en producción
+const secureApiUrl = API_URL.replace('http://', 'https://');
+
 const axiosInstance = axios.create({
-  baseURL: API_URL,
+  baseURL: secureApiUrl,
   headers: {
     'Content-Type': 'application/json',
   },
+  maxRedirects: 5,  // Permitir hasta 5 redirecciones
+  validateStatus: function (status) {
+    return status >= 200 && status < 400; // Aceptar códigos de estado en este rango
+  }
 });
 
 // Interceptor para agregar el token a todas las peticiones
@@ -16,6 +23,10 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Asegurarse de que la URL use HTTPS
+    if (config.url && config.url.startsWith('http://')) {
+      config.url = config.url.replace('http://', 'https://');
+    }
     return config;
   },
   (error) => {
@@ -23,10 +34,23 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Interceptor para manejar errores de autenticación
+// Interceptor para manejar redirecciones y errores
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    if (error.response && error.response.status === 307) {
+      const newUrl = error.response.headers.location;
+      if (newUrl) {
+        // Asegurarse de que la nueva URL use HTTPS
+        const secureUrl = newUrl.replace('http://', 'https://');
+        // Hacer una nueva petición a la URL segura
+        const config = {
+          ...error.config,
+          url: secureUrl,
+        };
+        return axiosInstance(config);
+      }
+    }
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
