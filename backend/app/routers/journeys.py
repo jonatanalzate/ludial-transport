@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from ..database import get_db
@@ -8,6 +8,11 @@ from ..models.vehicle import Vehicle
 from ..models.route import Route
 from pydantic import BaseModel
 from datetime import datetime
+import logging
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class JourneyBase(BaseModel):
     conductor_id: int
@@ -39,7 +44,8 @@ class FinalizarTrayectoRequest(BaseModel):
 
 router = APIRouter(
     prefix="/trayectos",
-    tags=["Trayectos"]
+    tags=["Trayectos"],
+    redirect_slashes=False  # Evitar redirecciones por barras al final
 )
 
 def prepare_journey_response(trayecto: Journey) -> Journey:
@@ -63,12 +69,17 @@ def crear_trayecto(trayecto: JourneyCreate, db: Session = Depends(get_db)):
     return prepare_journey_response(db_trayecto)
 
 @router.get("/", response_model=List[JourneyResponse])
-def listar_trayectos(db: Session = Depends(get_db)):
+def listar_trayectos(request: Request, db: Session = Depends(get_db)):
     try:
+        logger.info(f"Listando trayectos - URL: {request.url}")
+        logger.info(f"Headers: {request.headers}")
+        
         trayectos = db.query(Journey).all()
+        logger.info(f"Encontrados {len(trayectos)} trayectos")
+        
         return [prepare_journey_response(t) for t in trayectos]
     except Exception as e:
-        print(f"Error al listar trayectos: {str(e)}")
+        logger.error(f"Error al listar trayectos: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/{trayecto_id}/iniciar", response_model=JourneyResponse)
