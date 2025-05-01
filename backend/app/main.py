@@ -50,14 +50,19 @@ app = FastAPI(
 # Middleware para manejar redirecciones
 app.add_middleware(NoRedirectMiddleware)
 
-# Configuración de CORS
+# Configuración de CORS más permisiva para desarrollo y producción
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://ludial-transport.vercel.app", "http://localhost:3000"],
+    allow_origins=[
+        "https://ludial-transport.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"]
+    expose_headers=["*"],
+    max_age=3600
 )
 
 # Crear las tablas en la base de datos
