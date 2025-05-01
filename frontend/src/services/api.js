@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Asegurarnos de que siempre usamos HTTPS en producción
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-const baseURL = API_URL.replace(/^http:/, 'https:').replace(/\/$/, '');
+const baseURL = API_URL.replace(/^http:/, 'https:');
 
 console.log('API Service - Using URL:', baseURL);
 
@@ -14,24 +14,13 @@ const axiosInstance = axios.create({
   }
 });
 
-// Interceptor para agregar el token y asegurar HTTPS
+// Interceptor para agregar el token
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Asegurar HTTPS en todas las URLs
-    if (config.url) {
-      config.url = config.url.replace(/^http:/, 'https:');
-    }
-    if (config.baseURL) {
-      config.baseURL = config.baseURL.replace(/^http:/, 'https:');
-    }
-
-    // Agregar token si existe
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
-    console.log('Making request to:', config.baseURL + config.url);
     return config;
   },
   (error) => Promise.reject(error)
@@ -40,24 +29,11 @@ axiosInstance.interceptors.request.use(
 // Interceptor para manejar errores
 axiosInstance.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    console.error('API Error:', error.message, error.config?.url);
-
+  (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
-    
-    // Si es un error de red y la URL es HTTP, intentar con HTTPS
-    if (error.message === 'Network Error' && error.config) {
-      const originalRequest = error.config;
-      if (originalRequest.url?.startsWith('http:')) {
-        console.log('Retrying with HTTPS:', originalRequest.url);
-        originalRequest.url = originalRequest.url.replace(/^http:/, 'https:');
-        return axiosInstance(originalRequest);
-      }
-    }
-
     return Promise.reject(error);
   }
 );
@@ -65,10 +41,7 @@ axiosInstance.interceptors.response.use(
 // Funciones de la API
 export const api = {
   // Trayectos
-  getTrayectos: () => {
-    console.log('Fetching trayectos from:', `${baseURL}/trayectos`);
-    return axiosInstance.get('/trayectos');
-  },
+  getTrayectos: () => axiosInstance.get('/trayectos'),
   createTrayecto: (data) => axiosInstance.post('/trayectos', data),
   iniciarTrayecto: (id) => axiosInstance.post(`/trayectos/${id}/iniciar`),
   finalizarTrayecto: (id, cantidad_pasajeros) => {
@@ -78,40 +51,28 @@ export const api = {
   },
 
   // Conductores
-  getConductores: () => {
-    console.log('Fetching conductores from:', `${baseURL}/conductores`);
-    return axiosInstance.get('/conductores');
-  },
+  getConductores: () => axiosInstance.get('/conductores'),
   createConductor: (data) => axiosInstance.post('/conductores', data),
   updateConductor: (id, data) => axiosInstance.put(`/conductores/${id}`, data),
   deleteConductor: (id) => axiosInstance.delete(`/conductores/${id}`),
   createConductoresBulk: (data) => axiosInstance.post('/conductores/bulk', data),
 
   // Vehículos
-  getVehiculos: () => {
-    console.log('Fetching vehiculos from:', `${baseURL}/vehiculos`);
-    return axiosInstance.get('/vehiculos');
-  },
+  getVehiculos: () => axiosInstance.get('/vehiculos'),
   createVehiculo: (data) => axiosInstance.post('/vehiculos', data),
   updateVehiculo: (id, data) => axiosInstance.put(`/vehiculos/${id}`, data),
   deleteVehiculo: (id) => axiosInstance.delete(`/vehiculos/${id}`),
   createVehiculosBulk: (data) => axiosInstance.post('/vehiculos/bulk', data),
 
   // Rutas
-  getRutas: () => {
-    console.log('Fetching rutas from:', `${baseURL}/rutas`);
-    return axiosInstance.get('/rutas');
-  },
+  getRutas: () => axiosInstance.get('/rutas'),
   createRuta: (data) => axiosInstance.post('/rutas', data),
   updateRuta: (id, data) => axiosInstance.put(`/rutas/${id}`, data),
   deleteRuta: (id) => axiosInstance.delete(`/rutas/${id}`),
   createRutasBulk: (data) => axiosInstance.post('/rutas/bulk', data),
 
   // Usuarios
-  getUsuarios: () => {
-    console.log('Fetching usuarios from:', `${baseURL}/usuarios`);
-    return axiosInstance.get('/usuarios');
-  },
+  getUsuarios: () => axiosInstance.get('/usuarios'),
   createUsuario: (data) => axiosInstance.post('/usuarios', data),
   updateUsuario: (id, data) => axiosInstance.put(`/usuarios/${id}`, data),
   deleteUsuario: (id) => axiosInstance.delete(`/usuarios/${id}`),
