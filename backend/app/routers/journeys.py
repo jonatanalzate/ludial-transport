@@ -102,30 +102,30 @@ async def crear_trayecto(request: Request, journey: JourneyCreate, db: Session =
         # Validar conductor
         conductor = db.query(Driver).filter(Driver.id == journey.conductor_id).first()
         if not conductor:
-            logger.error(f"Conductor no encontrado: {journey.conductor_id}")
-            raise HTTPException(status_code=404, detail=f"Conductor {journey.conductor_id} no encontrado")
-        logger.info(f"Conductor validado: {conductor.id}")
+            logger.error(f"Conductor no encontrado: ID {journey.conductor_id}")
+            raise HTTPException(status_code=404, detail=f"Conductor con ID {journey.conductor_id} no encontrado")
+        logger.info(f"Conductor validado: {conductor.nombre} (ID: {conductor.id})")
         
         # Validar vehículo
         vehiculo = db.query(Vehicle).filter(Vehicle.id == journey.vehiculo_id).first()
         if not vehiculo:
-            logger.error(f"Vehículo no encontrado: {journey.vehiculo_id}")
-            raise HTTPException(status_code=404, detail=f"Vehículo {journey.vehiculo_id} no encontrado")
-        logger.info(f"Vehículo validado: {vehiculo.id}")
+            logger.error(f"Vehículo no encontrado: ID {journey.vehiculo_id}")
+            raise HTTPException(status_code=404, detail=f"Vehículo con ID {journey.vehiculo_id} no encontrado")
+        logger.info(f"Vehículo validado: {vehiculo.placa} (ID: {vehiculo.id})")
         
         # Validar ruta
         ruta = db.query(Route).filter(Route.id == journey.ruta_id).first()
         if not ruta:
-            logger.error(f"Ruta no encontrada: {journey.ruta_id}")
-            raise HTTPException(status_code=404, detail=f"Ruta {journey.ruta_id} no encontrada")
-        logger.info(f"Ruta validada: {ruta.id}")
+            logger.error(f"Ruta no encontrada: ID {journey.ruta_id}")
+            raise HTTPException(status_code=404, detail=f"Ruta con ID {journey.ruta_id} no encontrada")
+        logger.info(f"Ruta validada: {ruta.nombre} (ID: {ruta.id})")
         
         # Crear trayecto
         new_journey = Journey(
             conductor_id=journey.conductor_id,
             vehiculo_id=journey.vehiculo_id,
             ruta_id=journey.ruta_id,
-            estado=EstadoTrayecto.PENDIENTE,  # Cambiado a mayúsculas para coincidir con el enum
+            estado=EstadoTrayecto.PENDIENTE,
             fecha_creacion=datetime.utcnow()
         )
         
