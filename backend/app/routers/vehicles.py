@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from ..database import get_db
 from ..models.vehicle import Vehicle
 from pydantic import BaseModel
@@ -12,6 +12,11 @@ class VehicleBase(BaseModel):
 
 class VehicleCreate(VehicleBase):
     pass
+
+class VehicleUpdate(BaseModel):
+    placa: Optional[str] = None
+    modelo: Optional[str] = None
+    capacidad: Optional[int] = None
 
 class VehicleResponse(VehicleBase):
     id: int

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from ..database import get_db
 from ..models.route import Route
 from pydantic import BaseModel
@@ -13,6 +13,11 @@ class RouteBase(BaseModel):
 
 class RouteCreate(RouteBase):
     pass
+
+class RouteUpdate(BaseModel):
+    nombre: Optional[str] = None
+    origen: Optional[str] = None
+    destino: Optional[str] = None
 
 class RouteResponse(RouteBase):
     id: int

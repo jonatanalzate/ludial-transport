@@ -3,32 +3,33 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from ..database import get_db
 from ..models.journey import Journey, EstadoTrayecto
+from ..models.driver import Driver
+from ..models.vehicle import Vehicle
+from ..models.route import Route
 from pydantic import BaseModel
 from datetime import datetime
 
 class JourneyBase(BaseModel):
-    ruta_id: int
     conductor_id: int
     vehiculo_id: int
-    cantidad_pasajeros: int = 0
+    ruta_id: int
+    fecha_inicio: datetime
+    fecha_fin: Optional[datetime] = None
+    estado: str
 
 class JourneyCreate(JourneyBase):
     pass
 
-class JourneyResponse(BaseModel):
+class JourneyUpdate(BaseModel):
+    conductor_id: Optional[int] = None
+    vehiculo_id: Optional[int] = None
+    ruta_id: Optional[int] = None
+    fecha_inicio: Optional[datetime] = None
+    fecha_fin: Optional[datetime] = None
+    estado: Optional[str] = None
+
+class JourneyResponse(JourneyBase):
     id: int
-    ruta_id: int
-    conductor_id: int
-    vehiculo_id: int
-    fecha_salida: Optional[datetime]
-    fecha_llegada: Optional[datetime]
-    cantidad_pasajeros: int
-    estado: EstadoTrayecto
-    duracion_minutos: Optional[int]
-    duracion_actual: Optional[int]
-    nombre_ruta: str
-    nombre_conductor: str
-    placa_vehiculo: str
 
     class Config:
         from_attributes = True

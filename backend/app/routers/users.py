@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from ..database import get_db
 from ..models.user import User, RolUsuario
 from pydantic import BaseModel, EmailStr
@@ -17,11 +17,11 @@ class UserCreate(UserBase):
     password: str
 
 class UserUpdate(BaseModel):
-    email: EmailStr | None = None
-    nombre_completo: str | None = None
-    password: str | None = None
-    rol: RolUsuario | None = None
-    activo: bool | None = None
+    email: Optional[EmailStr] = None
+    nombre_completo: Optional[str] = None
+    password: Optional[str] = None
+    rol: Optional[RolUsuario] = None
+    activo: Optional[bool] = None
 
 class UserResponse(UserBase):
     id: int

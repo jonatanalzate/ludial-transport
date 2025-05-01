@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from ..database import get_db
 from ..models.driver import Driver
 from pydantic import BaseModel
@@ -13,6 +13,11 @@ class DriverBase(BaseModel):
 
 class DriverCreate(DriverBase):
     pass
+
+class DriverUpdate(BaseModel):
+    nombre: Optional[str] = None
+    licencia: Optional[str] = None
+    telefono: Optional[str] = None
 
 class DriverResponse(DriverBase):
     id: int
