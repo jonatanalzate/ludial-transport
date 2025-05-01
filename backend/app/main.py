@@ -64,6 +64,8 @@ ALLOWED_ORIGINS = [
 # Filtrar orígenes vacíos
 ALLOWED_ORIGINS = [origin for origin in ALLOWED_ORIGINS if origin]
 
+print("Allowed origins:", ALLOWED_ORIGINS)
+
 # Configuración de CORS
 app.add_middleware(
     CORSMiddleware,
@@ -79,8 +81,8 @@ app.add_middleware(
 # Base.metadata.drop_all(bind=engine)  # Comentar después de la primera ejecución
 Base.metadata.create_all(bind=engine)
 
-# Incluir los routers
-app.include_router(auth_router)
+# Incluir los routers - Asegurarse de que auth_router esté primero
+app.include_router(auth_router, prefix="")  # Sin prefijo adicional para mantener /auth/token
 app.include_router(users_router)
 app.include_router(drivers_router)
 app.include_router(vehicles_router)
@@ -95,5 +97,7 @@ def read_root():
 async def log_requests(request: Request, call_next):
     print(f"Incoming request: {request.method} {request.url}")
     print(f"Client host: {request.client.host}")
+    print(f"Headers: {request.headers}")
     response = await call_next(request)
+    print(f"Response status: {response.status_code}")
     return response
