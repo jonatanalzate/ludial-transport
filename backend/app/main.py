@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
@@ -24,19 +24,20 @@ load_dotenv()
 app = FastAPI(
     title="Sistema de Transporte",
     description="API para sistema de gestión de transporte",
-    version="1.0.0"
+    version="1.0.0",
+    root_path="",
+    docs_url="/docs",
+    openapi_url="/openapi.json"
 )
 
 # Configuración de CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://ludial-transport.vercel.app"
-    ],
+    allow_origins=["https://ludial-transport.vercel.app", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Crear las tablas en la base de datos
@@ -52,4 +53,15 @@ app.include_router(journeys_router)
 
 @app.get("/")
 def read_root():
-    return {"message": "Bienvenido al Sistema de Transporte"}
+    return {
+        "message": "Bienvenido al Sistema de Transporte",
+        "docs": "/docs",
+        "version": "1.0.0"
+    }
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    # Forzar HTTPS
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
