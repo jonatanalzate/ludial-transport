@@ -2,7 +2,9 @@ import axios from 'axios';
 
 // Asegurarnos de que siempre usamos HTTPS en producción
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-const baseURL = API_URL.replace(/^http:/, 'https:');
+const baseURL = process.env.NODE_ENV === 'production' 
+  ? API_URL.replace(/^http:/, 'https:').replace(/\/$/, '') 
+  : API_URL;
 
 console.log('API Service - Using URL:', baseURL);
 
@@ -11,6 +13,11 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
+  },
+  // Asegurarnos de que las redirecciones mantengan el método y los headers
+  maxRedirects: 5,
+  validateStatus: function (status) {
+    return status >= 200 && status < 400;
   }
 });
 
@@ -21,6 +28,8 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Asegurarnos de que no hay barras al final de la URL
+    config.url = config.url.replace(/\/$/, '');
     return config;
   },
   (error) => Promise.reject(error)
@@ -29,12 +38,23 @@ axiosInstance.interceptors.request.use(
 // Interceptor para manejar errores
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
+
+    // Si es un error de red o la API no está disponible
+    if (!error.response) {
+      console.error('Error de red o API no disponible:', error.message);
+      return Promise.reject(new Error('Error de conexión. Por favor, verifica tu conexión a internet.'));
+    }
+
+    // Para otros errores
+    const errorMessage = error.response?.data?.detail || error.message;
+    console.error('Error en la petición:', errorMessage);
+    return Promise.reject(new Error(errorMessage));
   }
 );
 
