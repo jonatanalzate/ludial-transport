@@ -16,6 +16,7 @@ const debugConfig = (config) => {
 // Función para asegurar que la URL use HTTPS y no tenga espacios
 const ensureHttps = (url) => {
   if (!url) return url;
+  // Eliminar espacios y asegurar HTTPS
   return url.trim().replace(/^http:\/\//i, 'https://');
 };
 
@@ -28,9 +29,11 @@ const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
+  withCredentials: true, // Habilitar credenciales para CORS
   maxRedirects: 5,
-  timeout: 10000, // 10 segundos de timeout
+  timeout: 15000, // Aumentado a 15 segundos
   validateStatus: function (status) {
     return status >= 200 && status < 400;
   }
@@ -43,18 +46,26 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    // Asegurar HTTPS en producción y limpiar espacios
-    if (process.env.NODE_ENV === 'production') {
-      if (config.url) {
-        config.url = ensureHttps(config.url);
-      }
-      if (config.baseURL) {
-        config.baseURL = ensureHttps(config.baseURL);
-      }
+
+    // Asegurar HTTPS en todas las URLs
+    if (config.url && typeof config.url === 'string') {
+      config.url = ensureHttps(config.url);
+    }
+    if (config.baseURL && typeof config.baseURL === 'string') {
+      config.baseURL = ensureHttps(config.baseURL);
     }
 
-    return debugConfig(config);
+    // Log de la configuración en desarrollo
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Request Config:', {
+        url: config.url,
+        baseURL: config.baseURL,
+        method: config.method,
+        headers: config.headers
+      });
+    }
+
+    return config;
   },
   (error) => {
     console.error('Error en interceptor de request:', error);
@@ -65,6 +76,7 @@ axiosInstance.interceptors.request.use(
 // Interceptor para manejar redirecciones y errores
 axiosInstance.interceptors.response.use(
   (response) => {
+    // Log de respuesta exitosa en desarrollo
     if (process.env.NODE_ENV === 'development') {
       console.log('Response:', {
         status: response.status,
@@ -75,38 +87,59 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   async (error) => {
+    // Log detallado del error
     console.error('Error en la respuesta:', {
       message: error.message,
       config: error.config,
-      response: error.response
+      response: error.response ? {
+        status: error.response.status,
+        headers: error.response.headers,
+        data: error.response.data
+      } : 'No response'
     });
 
     if (error.response) {
+      // Manejar redirección 307
       if (error.response.status === 307) {
         const newUrl = error.response.headers.location;
         if (newUrl) {
           console.log('Redirigiendo a:', newUrl);
           const secureUrl = ensureHttps(newUrl);
-          const config = {
+          // Crear una nueva configuración preservando los headers originales
+          const newConfig = {
             ...error.config,
             url: secureUrl,
+            headers: {
+              ...error.config.headers,
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
           };
-          return axiosInstance(config);
+          return axiosInstance(newConfig);
         }
       }
+
+      // Manejar error de autenticación
       if (error.response.status === 401) {
         localStorage.removeItem('token');
         window.location.href = '/login';
+        return Promise.reject(error);
       }
     }
-    
-    // Si es un error de red, intentar nuevamente
+
+    // Manejar error de red
     if (error.message === 'Network Error') {
       console.log('Reintentando petición después de error de red...');
       return new Promise(resolve => {
         setTimeout(() => {
-          resolve(axiosInstance(error.config));
-        }, 2000); // Esperar 2 segundos antes de reintentar
+          // Asegurar que la configuración use HTTPS
+          const retryConfig = {
+            ...error.config,
+            url: ensureHttps(error.config.url),
+            baseURL: ensureHttps(error.config.baseURL)
+          };
+          resolve(axiosInstance(retryConfig));
+        }, 2000);
       });
     }
 
