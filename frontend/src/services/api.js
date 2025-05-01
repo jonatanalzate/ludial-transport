@@ -1,23 +1,38 @@
 import axios from 'axios';
 
-// Función para asegurar que la URL use HTTPS
-const ensureHttps = (url) => {
-  if (process.env.NODE_ENV === 'production') {
-    return url.replace(/^http:\/\//i, 'https://');
+// Función para depurar la configuración
+const debugConfig = (config) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log('API Config:', {
+      baseURL: config.baseURL,
+      url: config.url,
+      method: config.method,
+      headers: config.headers
+    });
   }
-  return url;
+  return config;
+};
+
+// Función para asegurar que la URL use HTTPS y no tenga espacios
+const ensureHttps = (url) => {
+  if (!url) return url;
+  return url.trim().replace(/^http:\/\//i, 'https://');
 };
 
 const API_URL = ensureHttps(process.env.REACT_APP_API_URL || 'http://localhost:8000');
+
+console.log('API URL:', API_URL);
+console.log('NODE_ENV:', process.env.NODE_ENV);
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  maxRedirects: 5,  // Permitir hasta 5 redirecciones
+  maxRedirects: 5,
+  timeout: 10000, // 10 segundos de timeout
   validateStatus: function (status) {
-    return status >= 200 && status < 400; // Aceptar códigos de estado en este rango
+    return status >= 200 && status < 400;
   }
 });
 
@@ -29,41 +44,72 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    // Asegurar HTTPS en producción
+    // Asegurar HTTPS en producción y limpiar espacios
     if (process.env.NODE_ENV === 'production') {
-      if (config.url && config.url.startsWith('http://')) {
-        config.url = config.url.replace(/^http:\/\//i, 'https://');
+      if (config.url) {
+        config.url = ensureHttps(config.url);
       }
-      if (config.baseURL && config.baseURL.startsWith('http://')) {
-        config.baseURL = config.baseURL.replace(/^http:\/\//i, 'https://');
+      if (config.baseURL) {
+        config.baseURL = ensureHttps(config.baseURL);
       }
     }
-    return config;
+
+    return debugConfig(config);
   },
   (error) => {
+    console.error('Error en interceptor de request:', error);
     return Promise.reject(error);
   }
 );
 
 // Interceptor para manejar redirecciones y errores
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Response:', {
+        status: response.status,
+        data: response.data,
+        headers: response.headers
+      });
+    }
+    return response;
+  },
   async (error) => {
-    if (error.response && error.response.status === 307) {
-      const newUrl = error.response.headers.location;
-      if (newUrl) {
-        const secureUrl = ensureHttps(newUrl);
-        const config = {
-          ...error.config,
-          url: secureUrl,
-        };
-        return axiosInstance(config);
+    console.error('Error en la respuesta:', {
+      message: error.message,
+      config: error.config,
+      response: error.response
+    });
+
+    if (error.response) {
+      if (error.response.status === 307) {
+        const newUrl = error.response.headers.location;
+        if (newUrl) {
+          console.log('Redirigiendo a:', newUrl);
+          const secureUrl = ensureHttps(newUrl);
+          const config = {
+            ...error.config,
+            url: secureUrl,
+          };
+          return axiosInstance(config);
+        }
+      }
+      if (error.response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
       }
     }
-    if (error.response && error.response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+    
+    // Si es un error de red, intentar nuevamente
+    if (error.message === 'Network Error') {
+      console.log('Reintentando petición después de error de red...');
+      return new Promise(resolve => {
+        setTimeout(() => {
+          resolve(axiosInstance(error.config));
+        }, 2000); // Esperar 2 segundos antes de reintentar
+      });
     }
+
     return Promise.reject(error);
   }
 );
