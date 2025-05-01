@@ -29,8 +29,16 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Obtener los orígenes permitidos de las variables de entorno o usar un valor predeterminado
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+# Obtener los orígenes permitidos de las variables de entorno o usar valores predeterminados
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Desarrollo local
+    "https://ludial-transport.vercel.app",  # Producción en Vercel
+    "https://www.ludial-transport.vercel.app",  # Subdominio www
+    os.getenv("FRONTEND_URL", ""),  # URL personalizada desde variables de entorno
+]
+
+# Filtrar orígenes vacíos
+ALLOWED_ORIGINS = [origin for origin in ALLOWED_ORIGINS if origin]
 
 # Configuración de CORS
 app.add_middleware(
