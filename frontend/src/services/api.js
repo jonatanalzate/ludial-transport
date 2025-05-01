@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Asegurarnos de que siempre usamos HTTPS en producción
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-const baseURL = API_URL.replace(/^http:/, 'https:');
+const baseURL = API_URL.replace(/^http:/, 'https:').replace(/\/$/, '');
 
 console.log('API Service - Using URL:', baseURL);
 
@@ -14,13 +14,24 @@ const axiosInstance = axios.create({
   }
 });
 
-// Interceptor para agregar el token a todas las peticiones
+// Interceptor para agregar el token y asegurar HTTPS
 axiosInstance.interceptors.request.use(
   (config) => {
+    // Asegurar HTTPS en todas las URLs
+    if (config.url) {
+      config.url = config.url.replace(/^http:/, 'https:');
+    }
+    if (config.baseURL) {
+      config.baseURL = config.baseURL.replace(/^http:/, 'https:');
+    }
+
+    // Agregar token si existe
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    console.log('Making request to:', config.baseURL + config.url);
     return config;
   },
   (error) => Promise.reject(error)
@@ -29,11 +40,24 @@ axiosInstance.interceptors.request.use(
 // Interceptor para manejar errores
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    console.error('API Error:', error.message, error.config?.url);
+
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
+    
+    // Si es un error de red y la URL es HTTP, intentar con HTTPS
+    if (error.message === 'Network Error' && error.config) {
+      const originalRequest = error.config;
+      if (originalRequest.url?.startsWith('http:')) {
+        console.log('Retrying with HTTPS:', originalRequest.url);
+        originalRequest.url = originalRequest.url.replace(/^http:/, 'https:');
+        return axiosInstance(originalRequest);
+      }
+    }
+
     return Promise.reject(error);
   }
 );
