@@ -23,11 +23,11 @@ class JourneyBase(BaseModel):
     conductor_id: int
     vehiculo_id: int
     ruta_id: int
-    fecha_inicio: datetime
+    fecha_inicio: Optional[datetime] = None
     fecha_fin: Optional[datetime] = None
-    estado: str
+    estado: Optional[str] = None
 
-class JourneyCreate(JourneyBase):
+class JourneyCreate(BaseModel):
     conductor_id: int
     vehiculo_id: int
     ruta_id: int
@@ -125,7 +125,7 @@ async def crear_trayecto(request: Request, journey: JourneyCreate, db: Session =
             conductor_id=journey.conductor_id,
             vehiculo_id=journey.vehiculo_id,
             ruta_id=journey.ruta_id,
-            estado=EstadoTrayecto.pendiente,
+            estado=EstadoTrayecto.PENDIENTE,  # Cambiado a mayúsculas para coincidir con el enum
             fecha_creacion=datetime.utcnow()
         )
         
