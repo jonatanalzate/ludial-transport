@@ -1,16 +1,16 @@
 import axios from 'axios';
 
+// Asegurarnos de que siempre usamos HTTPS en producción
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const baseURL = API_URL.replace(/^http:/, 'https:');
 
-// Asegurar HTTPS en producción
-const baseURL = process.env.NODE_ENV === 'production' 
-  ? API_URL.replace('http://', 'https://')
-  : API_URL;
+console.log('Using API URL:', baseURL);
 
 const axiosInstance = axios.create({
   baseURL,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
   }
 });
 
@@ -21,21 +21,39 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Asegurarnos de que todas las URLs usen HTTPS en producción
+    if (process.env.NODE_ENV === 'production') {
+      config.url = config.url?.replace(/^http:/, 'https:');
+      config.baseURL = config.baseURL?.replace(/^http:/, 'https:');
+    }
+
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Interceptor para manejar errores de autenticación
+// Interceptor para manejar errores
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
+  async (error) => {
+    // Si es un error de red, intentar con HTTPS
+    if (error.message === 'Network Error' && process.env.NODE_ENV === 'production') {
+      const originalRequest = error.config;
+      
+      // Si la URL original era HTTP, intentar con HTTPS
+      if (originalRequest.url?.startsWith('http:')) {
+        originalRequest.url = originalRequest.url.replace(/^http:/, 'https:');
+        return axiosInstance(originalRequest);
+      }
+    }
+
+    // Si es un error de autenticación
+    if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
+
     return Promise.reject(error);
   }
 );
