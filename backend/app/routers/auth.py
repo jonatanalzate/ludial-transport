@@ -1,8 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from ..database import get_db
+from ..models.user import User
+from ..services import auth_service
+from typing import Optional
+from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
-from jose import jwt
+from jose import JWTError, jwt
 import os
 from dotenv import load_dotenv
 import bcrypt
@@ -18,7 +24,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 router = APIRouter(
     prefix="/auth",
-    tags=["auth"]
+    tags=["auth"],
+    responses={404: {"description": "Not found"}},
 )
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
@@ -48,67 +55,56 @@ def create_access_token(data: dict):
     return encoded_jwt
 
 @router.post("/token")
-async def login_for_access_token(
+async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
     try:
-        print(f"Intento de login para usuario: {form_data.username}")
-        user = db.query(User).filter(
-            (User.username == form_data.username) | (User.email == form_data.username)
-        ).first()
-        
+        user = auth_service.authenticate_user(form_data.username, form_data.password, db)
         if not user:
-            print("Usuario no encontrado")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Credenciales incorrectas",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
-        if not verify_password(form_data.password, user.hashed_password):
-            print("Contraseña incorrecta")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Credenciales incorrectas",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        
-        # Asegurarse de que el rol sea una cadena válida
-        role = user.rol.lower() if user.rol else 'operador'
-        print(f"Rol del usuario: {role}")
-        
-        # Mapear roles antiguos a nuevos si es necesario
-        role_mapping = {
-            'admin': 'administrador',
-            'administrator': 'administrador',
-            'operator': 'operador',
-            'supervisor': 'supervisor'
-        }
-        normalized_role = role_mapping.get(role, role)
-        print(f"Rol normalizado: {normalized_role}")
-        
-        access_token = create_access_token(
-            data={
-                "sub": user.username,
-                "role": normalized_role
+
+        access_token = auth_service.create_access_token(
+            data={"sub": user.username, "role": user.role}
+        )
+
+        response = JSONResponse(
+            content={
+                "access_token": access_token,
+                "token_type": "bearer",
+                "role": user.role,
+                "username": user.username
             }
         )
-        
-        return {
-            "access_token": access_token,
-            "token_type": "bearer",
-            "role": normalized_role
-        }
-        
+
+        # Configurar headers CORS específicos para la respuesta de autenticación
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Origin"] = os.getenv("FRONTEND_URL", "https://ludial-transport.vercel.app")
+        response.headers["Access-Control-Expose-Headers"] = "*"
+
+        return response
+
     except Exception as e:
         print(f"Error en login: {str(e)}")
-        if isinstance(e, HTTPException):
-            raise e
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor"
         )
+
+@router.options("/token")
+async def auth_options():
+    response = JSONResponse(content={})
+    # Configurar headers CORS para OPTIONS
+    response.headers["Access-Control-Allow-Origin"] = os.getenv("FRONTEND_URL", "https://ludial-transport.vercel.app")
+    response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    response.headers["Access-Control-Max-Age"] = "3600"
+    return response
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
