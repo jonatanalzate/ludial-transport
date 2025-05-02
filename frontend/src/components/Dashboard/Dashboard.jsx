@@ -78,7 +78,7 @@ const Dashboard = () => {
           api.getTrayectos()
         ]);
 
-        const activos = trayectosRes.data.filter(t => t.estado === 'en_curso');
+        const activos = trayectosRes.data.filter(t => t.estado === 'EN_CURSO');
         setTrayectosActivos(activos);
 
         setStats({
