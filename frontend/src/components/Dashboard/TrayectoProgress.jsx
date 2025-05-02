@@ -8,21 +8,29 @@ const TrayectoProgress = ({ trayecto }) => {
   const [position, setPosition] = useState(0);
 
   useEffect(() => {
+    let interval;
     if (trayecto.estado === 'EN_CURSO' && trayecto.fecha_salida) {
       const startTime = new Date(trayecto.fecha_salida).getTime();
-      const now = new Date().getTime();
       // Duración estimada: 1 hora (puedes ajustar esto si tienes un campo de duración estimada)
       const duration = 60 * 60 * 1000;
-      const elapsed = now - startTime;
-      let percent = Math.max(0, Math.min(100, (elapsed / duration) * 100));
-      setProgress(percent);
-      setPosition(percent);
+      const updateProgress = () => {
+        const now = new Date().getTime();
+        const elapsed = now - startTime;
+        let percent = Math.max(0, Math.min(100, (elapsed / duration) * 100));
+        setProgress(percent);
+        setPosition(percent);
+      };
+      updateProgress(); // Inicial
+      interval = setInterval(updateProgress, 1000); // Actualiza cada segundo
     }
+    return () => clearInterval(interval);
   }, [trayecto]);
 
   const formatTimeColombia = (date) => {
     if (!date) return '-';
-    return new Date(date).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota' });
+    // Forzar a UTC si la fecha viene como string ISO
+    const d = typeof date === 'string' ? new Date(date) : date;
+    return d.toLocaleTimeString('es-CO', { timeZone: 'America/Bogota' });
   };
 
   return (
