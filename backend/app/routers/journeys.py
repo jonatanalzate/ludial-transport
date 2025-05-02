@@ -46,15 +46,14 @@ class JourneyResponse(BaseModel):
     vehiculo_id: int
     ruta_id: int
     estado: str
-    fecha_creacion: datetime
     fecha_salida: Optional[datetime] = None
     fecha_llegada: Optional[datetime] = None
     duracion_minutos: Optional[int] = None
     cantidad_pasajeros: Optional[int] = None
-    nombre_ruta: str
-    nombre_conductor: str
-    placa_vehiculo: str
     duracion_actual: Optional[int] = None
+    nombre_ruta: Optional[str] = None
+    nombre_conductor: Optional[str] = None
+    placa_vehiculo: Optional[str] = None
 
     class Config:
         from_attributes = True
