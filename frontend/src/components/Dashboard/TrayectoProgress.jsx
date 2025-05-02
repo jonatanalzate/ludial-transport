@@ -6,25 +6,26 @@ import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 const TrayectoProgress = ({ trayecto }) => {
   const [progress, setProgress] = useState(0);
   const [position, setPosition] = useState(0);
+  const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
-    let interval;
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
     if (trayecto.estado === 'EN_CURSO' && trayecto.fecha_salida) {
       const startTime = new Date(trayecto.fecha_salida).getTime();
       // Duración estimada: 1 hora (puedes ajustar esto si tienes un campo de duración estimada)
       const duration = 60 * 60 * 1000;
-      const updateProgress = () => {
-        const now = new Date().getTime();
-        const elapsed = now - startTime;
-        let percent = Math.max(0, Math.min(100, (elapsed / duration) * 100));
-        setProgress(percent);
-        setPosition(percent);
-      };
-      updateProgress(); // Inicial
-      interval = setInterval(updateProgress, 1000); // Actualiza cada segundo
+      const elapsed = now - startTime;
+      let percent = Math.max(0, Math.min(100, (elapsed / duration) * 100));
+      setProgress(percent);
+      setPosition(percent);
     }
-    return () => clearInterval(interval);
-  }, [trayecto]);
+  }, [trayecto, now]);
 
   const formatTimeColombia = (date) => {
     if (!date) return '-';
@@ -103,8 +104,8 @@ const TrayectoProgress = ({ trayecto }) => {
             Llegada: {formatTimeColombia(trayecto.fecha_llegada)}
           </Typography>
         )}
-        <Typography variant="body2">
-          Tiempo transcurrido: {Math.floor(progress * 0.6)} min
+        <Typography variant="body2" color="text.secondary">
+          Tiempo transcurrido: {Math.floor((now - new Date(trayecto.fecha_salida).getTime()) / 60000)} min
         </Typography>
       </Box>
     </Paper>
