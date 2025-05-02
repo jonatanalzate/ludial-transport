@@ -2,9 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Box, Paper, Typography, LinearProgress } from '@mui/material';
 import { DirectionsBus } from '@mui/icons-material';
 
-const getStartTime = (fecha) => {
+const getStartTimeColombia = (fecha) => {
   if (!fecha) return 0;
-  return fecha.endsWith('Z') ? Date.parse(fecha) : Date.parse(fecha + 'Z');
+  // Convertir a hora Colombia usando toLocaleString y luego parsear
+  const localString = new Date(fecha).toLocaleString('en-US', { timeZone: 'America/Bogota' });
+  return new Date(localString).getTime();
+};
+
+const formatTimeColombia = (fecha) => {
+  if (!fecha) return '-';
+  return new Date(fecha).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota' });
 };
 
 const TrayectoProgress = ({ trayecto }) => {
@@ -12,8 +19,8 @@ const TrayectoProgress = ({ trayecto }) => {
   const [position, setPosition] = useState(0);
 
   useEffect(() => {
-    if (trayecto.estado === 'en_curso') {
-      const startTime = getStartTime(trayecto.fecha_salida);
+    if (trayecto.estado && trayecto.estado.toLowerCase() === 'en_curso') {
+      const startTime = getStartTimeColombia(trayecto.fecha_salida);
       const now = new Date().getTime();
       const elapsedMinutes = Math.max(0, (now - startTime) / (1000 * 60));
       // Calcular progreso inicial
@@ -117,7 +124,7 @@ const TrayectoProgress = ({ trayecto }) => {
         borderTop: '1px solid #e0e0e0'
       }}>
         <Typography variant="body2">
-          Salida: {new Date(trayecto.fecha_salida).toLocaleTimeString()}
+          Salida: {formatTimeColombia(trayecto.fecha_salida)}
         </Typography>
         <Typography variant="body2">
           Tiempo transcurrido: {Math.floor(progress * 0.6)} min
