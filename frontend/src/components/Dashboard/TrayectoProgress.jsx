@@ -2,15 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { Box, Paper, Typography, LinearProgress } from '@mui/material';
 import { DirectionsBus } from '@mui/icons-material';
 
+const getStartTime = (fecha) => {
+  if (!fecha) return 0;
+  return fecha.endsWith('Z') ? Date.parse(fecha) : Date.parse(fecha + 'Z');
+};
+
 const TrayectoProgress = ({ trayecto }) => {
   const [progress, setProgress] = useState(0);
   const [position, setPosition] = useState(0);
 
   useEffect(() => {
     if (trayecto.estado === 'en_curso') {
-      const startTime = new Date(trayecto.fecha_salida).getTime();
+      const startTime = getStartTime(trayecto.fecha_salida);
       const now = new Date().getTime();
-      const elapsedMinutes = (now - startTime) / (1000 * 60);
+      const elapsedMinutes = Math.max(0, (now - startTime) / (1000 * 60));
       // Calcular progreso inicial
       const initialProgress = Math.min((elapsedMinutes / 60) * 100, 100);
       setProgress(initialProgress);
@@ -19,7 +24,7 @@ const TrayectoProgress = ({ trayecto }) => {
       // Actualizar la posición cada segundo
       const interval = setInterval(() => {
         const currentTime = new Date().getTime();
-        const currentElapsed = (currentTime - startTime) / (1000 * 60);
+        const currentElapsed = Math.max(0, (currentTime - startTime) / (1000 * 60));
         const newProgress = Math.min((currentElapsed / 60) * 100, 100);
         setProgress(newProgress);
         setPosition(newProgress);
