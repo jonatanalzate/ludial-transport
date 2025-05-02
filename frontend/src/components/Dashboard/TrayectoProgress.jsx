@@ -7,7 +7,7 @@ const TrayectoProgress = ({ trayecto }) => {
   const [position, setPosition] = useState(0);
 
   useEffect(() => {
-    if (trayecto.estado === 'en_curso') {
+    if (trayecto.estado === 'EN_CURSO') {
       const startTime = new Date(trayecto.fecha_salida).getTime();
       const now = new Date().getTime();
       const elapsedMinutes = (now - startTime) / (1000 * 60);
@@ -29,6 +29,11 @@ const TrayectoProgress = ({ trayecto }) => {
       return () => clearInterval(interval);
     }
   }, [trayecto]);
+
+  const formatTimeColombia = (date) => {
+    if (!date) return '-';
+    return new Date(date).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota' });
+  };
 
   return (
     <Paper 
@@ -112,9 +117,16 @@ const TrayectoProgress = ({ trayecto }) => {
         pt: 2,
         borderTop: '1px solid #e0e0e0'
       }}>
-        <Typography variant="body2">
-          Salida: {new Date(trayecto.fecha_salida).toLocaleTimeString()}
-        </Typography>
+        {trayecto.fecha_salida && (
+          <Typography variant="body2" color="text.secondary">
+            Salida: {formatTimeColombia(trayecto.fecha_salida)}
+          </Typography>
+        )}
+        {trayecto.fecha_llegada && (
+          <Typography variant="body2" color="text.secondary">
+            Llegada: {formatTimeColombia(trayecto.fecha_llegada)}
+          </Typography>
+        )}
         <Typography variant="body2">
           Tiempo transcurrido: {Math.floor(progress * 0.6)} min
         </Typography>
