@@ -1,32 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Paper, Typography, LinearProgress } from '@mui/material';
 import { DirectionsBus } from '@mui/icons-material';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 
 const TrayectoProgress = ({ trayecto }) => {
   const [progress, setProgress] = useState(0);
   const [position, setPosition] = useState(0);
 
   useEffect(() => {
-    if (trayecto.estado === 'EN_CURSO') {
+    if (trayecto.estado === 'EN_CURSO' && trayecto.fecha_salida) {
       const startTime = new Date(trayecto.fecha_salida).getTime();
       const now = new Date().getTime();
-      const elapsedMinutes = (now - startTime) / (1000 * 60);
-      
-      // Calcular progreso inicial
-      const initialProgress = Math.min((elapsedMinutes / 60) * 100, 100);
-      setProgress(initialProgress);
-      setPosition(initialProgress);
-
-      // Actualizar la posición cada segundo
-      const interval = setInterval(() => {
-        const currentTime = new Date().getTime();
-        const currentElapsed = (currentTime - startTime) / (1000 * 60);
-        const newProgress = Math.min((currentElapsed / 60) * 100, 100);
-        setProgress(newProgress);
-        setPosition(newProgress);
-      }, 1000);
-
-      return () => clearInterval(interval);
+      // Duración estimada: 1 hora (puedes ajustar esto si tienes un campo de duración estimada)
+      const duration = 60 * 60 * 1000;
+      const elapsed = now - startTime;
+      let percent = Math.max(0, Math.min(100, (elapsed / duration) * 100));
+      setProgress(percent);
+      setPosition(percent);
     }
   }, [trayecto]);
 
@@ -70,44 +60,22 @@ const TrayectoProgress = ({ trayecto }) => {
         </Box>
       </Box>
 
-      <Box sx={{ mt: 3, mb: 1, position: 'relative' }}>
-        <LinearProgress
-          variant="determinate"
-          value={100}
-          sx={{
-            height: 12,
-            borderRadius: 6,
-            backgroundColor: '#e0e0e0',
-            '& .MuiLinearProgress-bar': {
-              backgroundColor: '#4caf50'
-            }
-          }}
-        />
-        <DirectionsBus
+      <Box sx={{ position: 'relative', width: '100%', height: 16, my: 2 }}>
+        <Box sx={{ position: 'absolute', left: 0, right: 0, top: 7, height: 4, bgcolor: '#4caf50', borderRadius: 2 }} />
+        {/* Bus icon animado */}
+        <DirectionsBusIcon
           sx={{
             position: 'absolute',
-            top: -18,
-            left: `${position}%`,
-            transform: 'translateX(-50%)',
+            top: -8,
+            left: `calc(${progress}% - 12px)`,
             color: '#1976d2',
-            fontSize: 36,
-            transition: 'left 1s linear'
+            fontSize: 24,
+            transition: 'left 1s linear',
+            zIndex: 2
           }}
         />
-        <Box
-          sx={{
-            display: 'flex', 
-            justifyContent: 'space-between',
-            mt: 1
-          }}
-        >
-          <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
-            Origen
-          </Typography>
-          <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
-            Destino
-          </Typography>
-        </Box>
+        <Typography variant="caption" sx={{ position: 'absolute', left: 0, top: 18 }}>Origen</Typography>
+        <Typography variant="caption" sx={{ position: 'absolute', right: 0, top: 18 }}>Destino</Typography>
       </Box>
 
       <Box sx={{ 
