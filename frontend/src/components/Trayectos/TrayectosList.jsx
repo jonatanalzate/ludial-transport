@@ -68,7 +68,7 @@ const TrayectosList = () => {
 
     try {
       const response = await api.finalizarTrayecto(selectedTrayecto.id, cantidadPasajeros);
-      console.log('Trayecto finalizado:', response.data);
+      // console.log('Trayecto finalizado:', response.data);
       setFinalizarDialogOpen(false);
       setSelectedTrayecto(null);
       setCantidadPasajeros('');

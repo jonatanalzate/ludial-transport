@@ -6,7 +6,7 @@ const baseURL = process.env.NODE_ENV === 'production'
   ? API_URL.replace(/^http:/, 'https:').replace(/\/$/, '') 
   : API_URL;
 
-console.log('API Service - Using URL:', baseURL);
+// console.log('API Service - Using URL:', baseURL);
 
 const axiosInstance = axios.create({
   baseURL,

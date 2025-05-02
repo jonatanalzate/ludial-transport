@@ -43,11 +43,11 @@ function Login() {
       );
 
       const { access_token, role } = response.data;
-      console.log('Role recibido:', role);
+      // console.log('Role recibido:', role);
       
       // Normalizar el rol recibido
       const normalizedRole = role.toLowerCase();
-      console.log('Role normalizado:', normalizedRole);
+      // console.log('Role normalizado:', normalizedRole);
       
       if (!normalizedRole || !['operador', 'supervisor', 'administrador'].includes(normalizedRole)) {
         console.error('Rol inválido recibido:', role);

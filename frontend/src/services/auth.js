@@ -24,7 +24,7 @@ export const auth = {
       formData.append('username', username);
       formData.append('password', password);
 
-      console.log('Intentando login con URL:', `${secureApiUrl}/auth/token`);
+      // console.log('Intentando login con URL:', `${secureApiUrl}/auth/token`);
 
       const response = await authInstance.post('/auth/token', formData);
 

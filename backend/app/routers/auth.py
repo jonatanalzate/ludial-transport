@@ -59,21 +59,9 @@ def create_access_token(data: dict):
 @router.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     try:
-        logger.info(f"Intento de login para usuario: {form_data.username}")
-        logger.info(f"Form data recibida: username={form_data.username}, password={'*' * len(form_data.password)}")
-        
         # Primero, verificar la estructura de la tabla
         try:
             table_info = db.execute(text("SELECT * FROM sqlite_master WHERE type='table' AND name='usuarios'")).first()
-            logger.info(f"Información de la tabla usuarios: {table_info}")
-            
-            # Verificar si hay usuarios en la tabla
-            user_count = db.execute(text("SELECT COUNT(*) FROM usuarios")).scalar()
-            logger.info(f"Total de usuarios en la tabla: {user_count}")
-            
-            # Listar todos los usuarios para debug
-            all_users = db.execute(text("SELECT username, email, rol FROM usuarios")).fetchall()
-            logger.info(f"Usuarios en la base de datos: {all_users}")
         except Exception as e:
             logger.error(f"Error al verificar la estructura de la tabla: {str(e)}")
         
@@ -101,9 +89,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
             "activo": bool(result[6])
         }
         
-        logger.info(f"Usuario encontrado: {user_data['username']}, rol: {user_data['rol']}")
-        logger.info(f"Hash almacenado: {user_data['hashed_password']}")
-        
         # Verificar contraseña
         if not verify_password(form_data.password, user_data['hashed_password']):
             logger.warning(f"Contraseña incorrecta para usuario: {form_data.username}")
@@ -112,17 +97,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
                 detail="Credenciales incorrectas"
             )
         
-        logger.info("Contraseña verificada correctamente")
-        
         # Crear token
         token_data = {
             "sub": user_data['username'],
             "role": user_data['rol'].lower() if user_data['rol'] else 'operador'
         }
-        logger.info(f"Token data: {token_data}")
         
         access_token = create_access_token(token_data)
-        logger.info("Token creado exitosamente")
         
         logger.info(f"Login exitoso para usuario: {form_data.username}")
         return {

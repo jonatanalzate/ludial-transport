@@ -36,13 +36,13 @@ const CRMList = () => {
   const loadTrayectos = async () => {
     try {
       const response = await api.getTrayectos();
-      console.log('Trayectos cargados:', response.data);
+      // console.log('Trayectos cargados:', response.data);
       
       const trayectosCompletados = response.data
         .filter(t => t.estado.toUpperCase() === 'COMPLETADO')
         .sort((a, b) => new Date(b.fecha_llegada) - new Date(a.fecha_salida));
       
-      console.log('Trayectos completados:', trayectosCompletados);
+      // console.log('Trayectos completados:', trayectosCompletados);
       setTrayectos(trayectosCompletados);
       setFilteredTrayectos(trayectosCompletados);
     } catch (error) {

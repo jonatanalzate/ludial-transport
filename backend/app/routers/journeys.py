@@ -101,29 +101,29 @@ def prepare_journey_response(trayecto: Journey, db: Session) -> dict:
 @router.post("", response_model=JourneyResponse)
 async def crear_trayecto(request: Request, journey: JourneyCreate, db: Session = Depends(get_db)):
     try:
-        logger.info("=== Iniciando creación de trayecto ===")
-        logger.info(f"Datos recibidos: {journey.dict()}")
+        # logger.info("=== Iniciando creación de trayecto ===")
+        # logger.info(f"Datos recibidos: {journey.dict()}")
         
         # Validar conductor
         conductor = db.query(Driver).filter(Driver.id == journey.conductor_id).first()
         if not conductor:
             logger.error(f"Conductor no encontrado: ID {journey.conductor_id}")
             raise HTTPException(status_code=404, detail=f"Conductor con ID {journey.conductor_id} no encontrado")
-        logger.info(f"Conductor validado: {conductor.nombre} (ID: {conductor.id})")
+        # logger.info(f"Conductor validado: {conductor.nombre} (ID: {conductor.id})")
         
         # Validar vehículo
         vehiculo = db.query(Vehicle).filter(Vehicle.id == journey.vehiculo_id).first()
         if not vehiculo:
             logger.error(f"Vehículo no encontrado: ID {journey.vehiculo_id}")
             raise HTTPException(status_code=404, detail=f"Vehículo con ID {journey.vehiculo_id} no encontrado")
-        logger.info(f"Vehículo validado: {vehiculo.placa} (ID: {vehiculo.id})")
+        # logger.info(f"Vehículo validado: {vehiculo.placa} (ID: {vehiculo.id})")
         
         # Validar ruta
         ruta = db.query(Route).filter(Route.id == journey.ruta_id).first()
         if not ruta:
             logger.error(f"Ruta no encontrada: ID {journey.ruta_id}")
             raise HTTPException(status_code=404, detail=f"Ruta con ID {journey.ruta_id} no encontrada")
-        logger.info(f"Ruta validada: {ruta.nombre} (ID: {ruta.id})")
+        # logger.info(f"Ruta validada: {ruta.nombre} (ID: {ruta.id})")
         
         # Crear trayecto
         new_journey = Journey(
@@ -137,7 +137,7 @@ async def crear_trayecto(request: Request, journey: JourneyCreate, db: Session =
             db.add(new_journey)
             db.commit()
             db.refresh(new_journey)
-            logger.info(f"Trayecto creado exitosamente con ID: {new_journey.id}")
+            # logger.info(f"Trayecto creado exitosamente con ID: {new_journey.id}")
         except Exception as e:
             db.rollback()
             logger.error(f"Error al guardar en la base de datos: {str(e)}")
@@ -147,7 +147,7 @@ async def crear_trayecto(request: Request, journey: JourneyCreate, db: Session =
         # Preparar respuesta
         try:
             response = prepare_journey_response(new_journey, db)
-            logger.info("Respuesta preparada exitosamente")
+            # logger.info("Respuesta preparada exitosamente")
             return response
         except Exception as e:
             logger.error(f"Error al preparar la respuesta: {str(e)}")
@@ -166,47 +166,47 @@ async def crear_trayecto(request: Request, journey: JourneyCreate, db: Session =
 @router.get("", response_model=List[JourneyResponse])
 async def listar_trayectos(request: Request, db: Session = Depends(get_db)):
     try:
-        logger.info("=== Iniciando listado de trayectos ===")
-        logger.info(f"URL: {request.url}")
-        logger.info(f"Headers: {dict(request.headers)}")
+        # logger.info("=== Iniciando listado de trayectos ===")
+        # logger.info(f"URL: {request.url}")
+        # logger.info(f"Headers: {dict(request.headers)}")
         
         # Verificar conexión a la base de datos
         try:
             db.execute(text("SELECT 1"))
-            logger.info("Conexión a la base de datos verificada")
+            # logger.info("Conexión a la base de datos verificada")
         except Exception as e:
             logger.error(f"Error de conexión a la base de datos: {str(e)}")
             raise HTTPException(status_code=500, detail="Error de conexión a la base de datos")
         
         # Contar total de registros en la tabla
         total_count = db.query(Journey).count()
-        logger.info(f"Total de registros en la tabla Journey: {total_count}")
+        # logger.info(f"Total de registros en la tabla Journey: {total_count}")
         
         # Obtener todos los trayectos
         trayectos = db.query(Journey).all()
-        logger.info(f"Trayectos encontrados: {len(trayectos)}")
+        # logger.info(f"Trayectos encontrados: {len(trayectos)}")
         
         # Verificar estructura de cada trayecto
         for t in trayectos:
-            logger.info(f"Trayecto ID: {t.id}")
-            logger.info(f"Estado: {t.estado}")
-            logger.info(f"Conductor ID: {t.conductor_id}")
-            logger.info(f"Vehículo ID: {t.vehiculo_id}")
-            logger.info(f"Ruta ID: {t.ruta_id}")
+            # logger.info(f"Trayecto ID: {t.id}")
+            # logger.info(f"Estado: {t.estado}")
+            # logger.info(f"Conductor ID: {t.conductor_id}")
+            # logger.info(f"Vehículo ID: {t.vehiculo_id}")
+            # logger.info(f"Ruta ID: {t.ruta_id}")
         
         response = []
         for t in trayectos:
             try:
                 journey_response = prepare_journey_response(t, db)
                 response.append(journey_response)
-                logger.info(f"Trayecto {t.id} procesado correctamente")
+                # logger.info(f"Trayecto {t.id} procesado correctamente")
             except Exception as e:
                 logger.error(f"Error procesando trayecto {t.id}: {str(e)}")
                 logger.error(traceback.format_exc())
                 continue
         
-        logger.info(f"Total de trayectos procesados: {len(response)}")
-        logger.info("=== Fin del listado de trayectos ===")
+        # logger.info(f"Total de trayectos procesados: {len(response)}")
+        # logger.info("=== Fin del listado de trayectos ===")
         return response
         
     except Exception as e:
