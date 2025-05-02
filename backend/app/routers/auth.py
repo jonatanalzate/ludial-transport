@@ -79,12 +79,12 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         
         # Buscar usuario usando SQL directo para evitar problemas con las relaciones
         result = db.execute(
-            text("SELECT * FROM usuarios WHERE username = :username"),
-            {"username": form_data.username}
+            text("SELECT * FROM usuarios WHERE email = :email"),
+            {"email": form_data.username}
         ).first()
         
         if not result:
-            logger.warning(f"Usuario no encontrado: {form_data.username}")
+            logger.warning(f"Usuario no encontrado con email: {form_data.username}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Credenciales incorrectas"
