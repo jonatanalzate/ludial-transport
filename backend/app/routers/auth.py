@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from datetime import datetime, timedelta
 from jose import jwt
 import os
@@ -61,20 +62,35 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         logger.info(f"Intento de login para usuario: {form_data.username}")
         logger.info(f"Form data recibida: username={form_data.username}, password={'*' * len(form_data.password)}")
         
-        # Buscar usuario
-        user = db.query(User).filter(User.username == form_data.username).first()
-        if not user:
+        # Buscar usuario usando SQL directo para evitar problemas con las relaciones
+        result = db.execute(
+            text("SELECT * FROM usuarios WHERE username = :username"),
+            {"username": form_data.username}
+        ).first()
+        
+        if not result:
             logger.warning(f"Usuario no encontrado: {form_data.username}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Credenciales incorrectas"
             )
         
-        logger.info(f"Usuario encontrado: {user.username}, rol: {user.rol}")
-        logger.info(f"Hash almacenado: {user.hashed_password}")
+        # Crear un diccionario con los datos del usuario
+        user_data = {
+            "id": result[0],
+            "username": result[1],
+            "email": result[2],
+            "nombre_completo": result[3],
+            "hashed_password": result[4],
+            "rol": result[5],
+            "activo": bool(result[6])
+        }
+        
+        logger.info(f"Usuario encontrado: {user_data['username']}, rol: {user_data['rol']}")
+        logger.info(f"Hash almacenado: {user_data['hashed_password']}")
         
         # Verificar contraseña
-        if not verify_password(form_data.password, user.hashed_password):
+        if not verify_password(form_data.password, user_data['hashed_password']):
             logger.warning(f"Contraseña incorrecta para usuario: {form_data.username}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -85,8 +101,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         
         # Crear token
         token_data = {
-            "sub": user.username,
-            "role": user.rol.lower() if user.rol else 'operador'
+            "sub": user_data['username'],
+            "role": user_data['rol'].lower() if user_data['rol'] else 'operador'
         }
         logger.info(f"Token data: {token_data}")
         
@@ -97,7 +113,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         return {
             "access_token": access_token,
             "token_type": "bearer",
-            "role": user.rol.lower() if user.rol else 'operador'
+            "role": user_data['rol'].lower() if user_data['rol'] else 'operador'
         }
         
     except HTTPException as he:
