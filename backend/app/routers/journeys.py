@@ -193,6 +193,7 @@ async def listar_trayectos(request: Request, db: Session = Depends(get_db)):
             # logger.info(f"Conductor ID: {t.conductor_id}")
             # logger.info(f"Vehículo ID: {t.vehiculo_id}")
             # logger.info(f"Ruta ID: {t.ruta_id}")
+            pass
         
         response = []
         for t in trayectos:
