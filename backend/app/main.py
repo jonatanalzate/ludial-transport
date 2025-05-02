@@ -3,7 +3,25 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 import os
 from dotenv import load_dotenv
+import logging
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+load_dotenv()
+
+# Importar modelos primero
+from .models.user import User
+from .models.driver import Driver
+from .models.vehicle import Vehicle
+from .models.route import Route
+from .models.journey import Journey, EstadoTrayecto
+
+# Luego importar la base de datos
 from .database import engine, Base
+
+# Finalmente importar los routers
 from .routers import (
     auth_router,
     users_router,
@@ -13,25 +31,9 @@ from .routers import (
     journeys_router
 )
 
-# Asegurarse de que todos los modelos estén importados
-from .models.user import User
-from .models.driver import Driver
-from .models.vehicle import Vehicle
-from .models.route import Route
-from .models.journey import Journey
-
-import logging
-
-# Configurar logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-load_dotenv()
-
 class NoRedirectMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
-        # Si es una redirección y la URL destino es HTTP, convertirla a HTTPS
         if response.status_code in [301, 302, 307, 308]:
             location = response.headers.get('location', '')
             if location.startswith('http://'):
@@ -68,7 +70,7 @@ app.add_middleware(
 # Crear las tablas en la base de datos
 Base.metadata.create_all(bind=engine)
 
-# Incluir los routers con configuración para no redirigir barras al final
+# Incluir los routers
 for router in [auth_router, users_router, drivers_router, vehicles_router, routes_router, journeys_router]:
     app.include_router(router)
 
