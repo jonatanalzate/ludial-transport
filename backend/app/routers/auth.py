@@ -62,6 +62,21 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         logger.info(f"Intento de login para usuario: {form_data.username}")
         logger.info(f"Form data recibida: username={form_data.username}, password={'*' * len(form_data.password)}")
         
+        # Primero, verificar la estructura de la tabla
+        try:
+            table_info = db.execute(text("SELECT * FROM sqlite_master WHERE type='table' AND name='usuarios'")).first()
+            logger.info(f"Información de la tabla usuarios: {table_info}")
+            
+            # Verificar si hay usuarios en la tabla
+            user_count = db.execute(text("SELECT COUNT(*) FROM usuarios")).scalar()
+            logger.info(f"Total de usuarios en la tabla: {user_count}")
+            
+            # Listar todos los usuarios para debug
+            all_users = db.execute(text("SELECT username, email, rol FROM usuarios")).fetchall()
+            logger.info(f"Usuarios en la base de datos: {all_users}")
+        except Exception as e:
+            logger.error(f"Error al verificar la estructura de la tabla: {str(e)}")
+        
         # Buscar usuario usando SQL directo para evitar problemas con las relaciones
         result = db.execute(
             text("SELECT * FROM usuarios WHERE username = :username"),
