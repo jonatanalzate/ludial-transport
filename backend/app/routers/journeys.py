@@ -130,8 +130,7 @@ async def crear_trayecto(request: Request, journey: JourneyCreate, db: Session =
             conductor_id=journey.conductor_id,
             vehiculo_id=journey.vehiculo_id,
             ruta_id=journey.ruta_id,
-            estado=EstadoTrayecto.PROGRAMADO,
-            fecha_creacion=datetime.utcnow()
+            estado=EstadoTrayecto.PROGRAMADO
         )
         
         try:

@@ -71,4 +71,19 @@ async def crear_vehiculos_bulk(vehiculos: VehiclesCreateBulk, db: Session = Depe
     db.commit()
     for vehiculo in db_vehiculos:
         db.refresh(vehiculo)
-    return db_vehiculos 
+    return db_vehiculos
+
+@router.put("/{vehiculo_id}", response_model=VehicleResponse)
+async def actualizar_vehiculo(vehiculo_id: int, vehiculo: VehicleUpdate, db: Session = Depends(get_db)):
+    db_vehiculo = db.query(Vehicle).filter(Vehicle.id == vehiculo_id).first()
+    if db_vehiculo is None:
+        raise HTTPException(status_code=404, detail="Vehículo no encontrado")
+    if vehiculo.placa is not None:
+        db_vehiculo.placa = vehiculo.placa
+    if vehiculo.modelo is not None:
+        db_vehiculo.modelo = vehiculo.modelo
+    if vehiculo.capacidad is not None:
+        db_vehiculo.capacidad = vehiculo.capacidad
+    db.commit()
+    db.refresh(db_vehiculo)
+    return db_vehiculo 
