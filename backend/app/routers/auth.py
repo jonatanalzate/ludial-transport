@@ -59,6 +59,7 @@ def create_access_token(data: dict):
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     try:
         logger.info(f"Intento de login para usuario: {form_data.username}")
+        logger.info(f"Form data recibida: username={form_data.username}, password={'*' * len(form_data.password)}")
         
         # Buscar usuario
         user = db.query(User).filter(User.username == form_data.username).first()
@@ -69,6 +70,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
                 detail="Credenciales incorrectas"
             )
         
+        logger.info(f"Usuario encontrado: {user.username}, rol: {user.rol}")
+        logger.info(f"Hash almacenado: {user.hashed_password}")
+        
         # Verificar contraseña
         if not verify_password(form_data.password, user.hashed_password):
             logger.warning(f"Contraseña incorrecta para usuario: {form_data.username}")
@@ -77,12 +81,17 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
                 detail="Credenciales incorrectas"
             )
         
+        logger.info("Contraseña verificada correctamente")
+        
         # Crear token
         token_data = {
             "sub": user.username,
             "role": user.rol.lower() if user.rol else 'operador'
         }
+        logger.info(f"Token data: {token_data}")
+        
         access_token = create_access_token(token_data)
+        logger.info("Token creado exitosamente")
         
         logger.info(f"Login exitoso para usuario: {form_data.username}")
         return {
@@ -92,6 +101,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         }
         
     except HTTPException as he:
+        logger.error(f"HTTP Exception en login: {str(he.detail)}")
         raise he
     except Exception as e:
         logger.error(f"Error en login: {str(e)}")
