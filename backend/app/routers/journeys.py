@@ -81,19 +81,16 @@ def prepare_journey_response(trayecto: Journey, db: Session) -> dict:
             "conductor_id": trayecto.conductor_id,
             "vehiculo_id": trayecto.vehiculo_id,
             "ruta_id": trayecto.ruta_id,
-            "fecha_inicio": trayecto.fecha_inicio,
-            "fecha_fin": trayecto.fecha_fin,
             "estado": trayecto.estado,
+            "fecha_salida": trayecto.fecha_salida,
+            "fecha_llegada": trayecto.fecha_llegada,
+            "duracion_minutos": trayecto.duracion_minutos,
+            "cantidad_pasajeros": trayecto.cantidad_pasajeros,
+            "duracion_actual": trayecto.duracion_actual,
             "nombre_ruta": ruta.nombre if ruta else "Sin ruta",
             "nombre_conductor": conductor.nombre if conductor else "Sin conductor",
-            "placa_vehiculo": vehiculo.placa if vehiculo else "Sin vehículo",
-            "duracion_actual": None
+            "placa_vehiculo": vehiculo.placa if vehiculo else "Sin vehículo"
         }
-
-        # Calcular duración si está en curso
-        if trayecto.estado == EstadoTrayecto.EN_CURSO and trayecto.fecha_salida:
-            tiempo_transcurrido = datetime.now() - trayecto.fecha_salida
-            response["duracion_actual"] = int(tiempo_transcurrido.total_seconds() / 60)
 
         return response
     except Exception as e:
