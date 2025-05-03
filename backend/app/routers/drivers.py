@@ -73,4 +73,27 @@ def crear_conductores_bulk(conductores: DriversCreateBulk, db: Session = Depends
     db.commit()
     for conductor in db_conductores:
         db.refresh(conductor)
-    return db_conductores 
+    return db_conductores
+
+@router.put("/{conductor_id}", response_model=DriverResponse)
+def actualizar_conductor(conductor_id: int, conductor: DriverUpdate, db: Session = Depends(get_db)):
+    db_conductor = db.query(Driver).filter(Driver.id == conductor_id).first()
+    if db_conductor is None:
+        raise HTTPException(status_code=404, detail="Conductor no encontrado")
+    
+    for key, value in conductor.dict(exclude_unset=True).items():
+        setattr(db_conductor, key, value)
+    
+    db.commit()
+    db.refresh(db_conductor)
+    return db_conductor
+
+@router.delete("/{conductor_id}")
+def eliminar_conductor(conductor_id: int, db: Session = Depends(get_db)):
+    db_conductor = db.query(Driver).filter(Driver.id == conductor_id).first()
+    if db_conductor is None:
+        raise HTTPException(status_code=404, detail="Conductor no encontrado")
+    
+    db.delete(db_conductor)
+    db.commit()
+    return {"message": "Conductor eliminado"} 

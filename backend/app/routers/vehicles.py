@@ -78,12 +78,20 @@ async def actualizar_vehiculo(vehiculo_id: int, vehiculo: VehicleUpdate, db: Ses
     db_vehiculo = db.query(Vehicle).filter(Vehicle.id == vehiculo_id).first()
     if db_vehiculo is None:
         raise HTTPException(status_code=404, detail="Vehículo no encontrado")
-    if vehiculo.placa is not None:
-        db_vehiculo.placa = vehiculo.placa
-    if vehiculo.modelo is not None:
-        db_vehiculo.modelo = vehiculo.modelo
-    if vehiculo.capacidad is not None:
-        db_vehiculo.capacidad = vehiculo.capacidad
+    
+    for key, value in vehiculo.dict(exclude_unset=True).items():
+        setattr(db_vehiculo, key, value)
+    
     db.commit()
     db.refresh(db_vehiculo)
-    return db_vehiculo 
+    return db_vehiculo
+
+@router.delete("/{vehiculo_id}")
+async def eliminar_vehiculo(vehiculo_id: int, db: Session = Depends(get_db)):
+    db_vehiculo = db.query(Vehicle).filter(Vehicle.id == vehiculo_id).first()
+    if db_vehiculo is None:
+        raise HTTPException(status_code=404, detail="Vehículo no encontrado")
+    
+    db.delete(db_vehiculo)
+    db.commit()
+    return {"message": "Vehículo eliminado"} 
