@@ -70,7 +70,7 @@ def migrate_data(sqlite_engine, postgres_engine):
                     "nombre_completo": usuario[3],
                     "hashed_password": usuario[4],
                     "rol": usuario[5],
-                    "activo": usuario[6]
+                    "activo": bool(usuario[6])
                 }
             )
         

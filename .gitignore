@@ -37,6 +37,8 @@ yarn-error.log*
 # Database
 *.db
 *.sqlite3
+# Permitir nuestra base de datos específica
+!transporte.db
 
 # IDE
 .vscode/
