@@ -8,6 +8,7 @@ import os
 from dotenv import load_dotenv
 import bcrypt
 import logging
+import traceback
 
 from ..database import get_db
 from ..models.user import User, RolUsuario
@@ -59,12 +60,6 @@ def create_access_token(data: dict):
 @router.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     try:
-        # Primero, verificar la estructura de la tabla
-        try:
-            table_info = db.execute(text("SELECT * FROM sqlite_master WHERE type='table' AND name='usuarios'")).first()
-        except Exception as e:
-            logger.error(f"Error al verificar la estructura de la tabla: {str(e)}")
-        
         # Buscar usuario usando SQL directo para evitar problemas con las relaciones
         result = db.execute(
             text("SELECT * FROM usuarios WHERE email = :email"),
@@ -106,22 +101,11 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         access_token = create_access_token(token_data)
         
         logger.info(f"Login exitoso para usuario: {form_data.username}")
-        return {
-            "access_token": access_token,
-            "token_type": "bearer",
-            "role": user_data['rol'].lower() if user_data['rol'] else 'operador'
-        }
-        
-    except HTTPException as he:
-        logger.error(f"HTTP Exception en login: {str(he.detail)}")
-        raise he
+        return {"access_token": access_token, "token_type": "bearer"}
     except Exception as e:
         logger.error(f"Error en login: {str(e)}")
-        logger.error(f"Traceback: {logging.traceback.format_exc()}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error interno del servidor"
-        )
+        logger.error("Traceback: " + traceback.format_exc())
+        raise HTTPException(status_code=500, detail="Error interno en el servidor")
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
