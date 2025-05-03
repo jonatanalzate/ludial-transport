@@ -101,7 +101,11 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         access_token = create_access_token(token_data)
         
         logger.info(f"Login exitoso para usuario: {form_data.username}")
-        return {"access_token": access_token, "token_type": "bearer"}
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "role": user_data['rol'].lower() if user_data['rol'] else 'operador'
+        }
     except Exception as e:
         logger.error(f"Error en login: {str(e)}")
         logger.error("Traceback: " + traceback.format_exc())
