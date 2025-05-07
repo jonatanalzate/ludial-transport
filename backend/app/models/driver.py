@@ -9,5 +9,6 @@ class Driver(Base):
     nombre = Column(String, index=True)
     licencia = Column(String, unique=True, index=True)
     telefono = Column(String)
+    # trayectos = relationship("Journey", back_populates="conductor")  # Eliminado
 
-    trayectos = relationship("Journey", back_populates="conductor") 
+    # trayectos = relationship("Journey", back_populates="conductor") 
