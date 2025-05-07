@@ -14,12 +14,23 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Stack
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip,
+  Tooltip,
+  IconButton
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { api } from '../../services/api';
 import TrayectoCard from './TrayectoCard';
 import TrayectoForm from './TrayectoForm';
+import { DirectionsBus, Person, Route, PlayArrow, CheckCircle } from '@mui/icons-material';
 
 const TrayectosList = () => {
   const [trayectos, setTrayectos] = useState([]);
@@ -139,17 +150,84 @@ const TrayectosList = () => {
           <CircularProgress />
         </Box>
       ) : (
-        <Grid container spacing={3}>
-          {trayectosFiltrados.map((trayecto) => (
-            <Grid item xs={12} sm={6} md={4} key={trayecto.id}>
-              <TrayectoCard
-                trayecto={trayecto}
-                onIniciar={handleIniciarTrayecto}
-                onFinalizar={handleFinalizarClick}
-              />
-            </Grid>
-          ))}
-        </Grid>
+        <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: 3 }}>
+          <Table>
+            <TableHead>
+              <TableRow sx={{ background: 'linear-gradient(90deg, #1976d2 0%, #2196f3 100%)' }}>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Estado</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Ruta</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Conductor</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Vehículo</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Salida</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Llegada</TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {[...trayectosFiltrados]
+                .sort((a, b) => new Date(b.fecha_salida || 0) - new Date(a.fecha_salida || 0))
+                .map((trayecto) => (
+                <TableRow key={trayecto.id} hover>
+                  <TableCell>
+                    <Chip
+                      label={trayecto.estado}
+                      color={(() => {
+                        switch (trayecto.estado.toLowerCase()) {
+                          case 'programado': return 'info';
+                          case 'en_curso': return 'warning';
+                          case 'completado': return 'success';
+                          case 'cancelado': return 'error';
+                          default: return 'default';
+                        }
+                      })()}
+                      sx={{ fontWeight: 'bold', fontSize: 14 }}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Route fontSize="small" color="primary" />
+                      <Typography>{trayecto.nombre_ruta}</Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Person fontSize="small" color="primary" />
+                      <Typography>{trayecto.nombre_conductor}</Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <DirectionsBus fontSize="small" color="primary" />
+                      <Typography>{trayecto.placa_vehiculo}</Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell sx={{ fontFamily: 'monospace' }}>
+                    {trayecto.fecha_salida ? new Date(trayecto.fecha_salida).toLocaleTimeString() : '-'}
+                  </TableCell>
+                  <TableCell sx={{ fontFamily: 'monospace' }}>
+                    {trayecto.fecha_llegada ? new Date(trayecto.fecha_llegada).toLocaleTimeString() : '-'}
+                  </TableCell>
+                  <TableCell>
+                    {trayecto.estado.toLowerCase() === 'programado' && (
+                      <Tooltip title="Iniciar Trayecto">
+                        <IconButton color="primary" onClick={() => handleIniciarTrayecto(trayecto.id)}>
+                          <PlayArrow />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    {trayecto.estado.toLowerCase() === 'en_curso' && (
+                      <Tooltip title="Finalizar Trayecto">
+                        <IconButton color="success" onClick={() => handleFinalizarClick(trayecto)}>
+                          <CheckCircle />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
 
       <TrayectoForm
