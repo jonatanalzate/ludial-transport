@@ -107,10 +107,12 @@ async def get_users(db: Session = Depends(get_db)):
 @router.post("/", response_model=dict)
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     try:
+        print(f"[DEBUG] Datos recibidos para crear usuario: {user.dict()}")
         db_user = db.query(User).filter(
             (User.email == user.email) | (User.username == user.username)
         ).first()
         if db_user:
+            print(f"[DEBUG] Usuario ya existe: {db_user.email}, {db_user.username}")
             raise HTTPException(status_code=400, detail="El usuario ya existe")
 
         hashed_password = get_password_hash(user.password)
@@ -121,14 +123,16 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
             hashed_password=hashed_password,
             rol=normalize_role(user.rol).value
         )
+        print(f"[DEBUG] Objeto User a guardar: {db_user.__dict__}")
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
+        print(f"[DEBUG] Usuario creado exitosamente: {db_user.id}")
         return {"message": "Usuario creado exitosamente"}
     except Exception as e:
         db.rollback()
-        print(f"Error creando usuario: {str(e)}")
         import traceback; traceback.print_exc()
+        print(f"[ERROR] Error creando usuario: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail=f"Error al crear el usuario: {str(e)}"
