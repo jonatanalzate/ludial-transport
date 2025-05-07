@@ -53,6 +53,8 @@ def normalize_role(role: str) -> RolUsuario:
         'OPERADOR': RolUsuario.OPERADOR,
         'supervisor': RolUsuario.SUPERVISOR,
         'SUPERVISOR': RolUsuario.SUPERVISOR,
+        'conductor': RolUsuario.CONDUCTOR,
+        'CONDUCTOR': RolUsuario.CONDUCTOR,
     }
     return role_mapping.get(role, RolUsuario.OPERADOR)  # default a OPERADOR si no se encuentra
 
@@ -110,14 +112,12 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
             username=user.username,
             nombre_completo=user.nombre_completo,
             hashed_password=hashed_password,
-            rol=user.rol
+            rol=normalize_role(user.rol)
         )
-        
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
         return {"message": "Usuario creado exitosamente"}
-        
     except Exception as e:
         db.rollback()
         print(f"Error creando usuario: {str(e)}")
@@ -203,7 +203,7 @@ async def crear_usuarios_bulk(usuarios: UsersCreateBulk, db: Session = Depends(g
             username=usuario.username,
             nombre_completo=usuario.nombre_completo,
             hashed_password=hashed_password,
-            rol=usuario.rol,
+            rol=normalize_role(usuario.rol),
             activo=True
         )
         db_usuarios.append(db_usuario)
