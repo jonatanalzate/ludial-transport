@@ -198,6 +198,9 @@ async def listar_trayectos(request: Request, db: Session = Depends(get_db)):
         
         response = []
         for t in trayectos:
+            if t.conductor_id is None:
+                logger.error(f"Trayecto {t.id} tiene conductor_id None. Omitiendo de la respuesta.")
+                continue
             try:
                 journey_response = prepare_journey_response(t, db)
                 response.append(journey_response)

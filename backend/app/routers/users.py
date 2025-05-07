@@ -129,6 +129,10 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
         db.refresh(db_user)
         print(f"[DEBUG] Usuario creado exitosamente: {db_user.id}")
         return {"message": "Usuario creado exitosamente"}
+    except HTTPException as he:
+        db.rollback()
+        print(f"[ERROR] HTTPException creando usuario: {str(he)}")
+        raise he
     except Exception as e:
         db.rollback()
         import traceback; traceback.print_exc()
