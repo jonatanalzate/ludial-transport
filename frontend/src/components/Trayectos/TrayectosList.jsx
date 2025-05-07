@@ -30,7 +30,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { api } from '../../services/api';
 import TrayectoCard from './TrayectoCard';
 import TrayectoForm from './TrayectoForm';
-import { DirectionsBus, Person, Route, PlayArrow, CheckCircle } from '@mui/icons-material';
+import { DirectionsBus, Person, Route, PlayArrow, CheckCircle, FlagCircle } from '@mui/icons-material';
 
 const TrayectosList = () => {
   const [trayectos, setTrayectos] = useState([]);
@@ -216,11 +216,22 @@ const TrayectosList = () => {
                       </Tooltip>
                     )}
                     {trayecto.estado.toLowerCase() === 'en_curso' && (
-                      <Tooltip title="Finalizar Trayecto">
-                        <IconButton color="success" onClick={() => handleFinalizarClick(trayecto)}>
-                          <CheckCircle />
-                        </IconButton>
-                      </Tooltip>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<FlagCircle />}
+                        onClick={() => handleFinalizarClick(trayecto)}
+                        sx={{
+                          borderRadius: 3,
+                          fontWeight: 'bold',
+                          textTransform: 'none',
+                          boxShadow: 2,
+                          bgcolor: '#1976d2',
+                          '&:hover': { bgcolor: '#115293' }
+                        }}
+                      >
+                        Finalizar
+                      </Button>
                     )}
                   </TableCell>
                 </TableRow>
