@@ -209,11 +209,22 @@ const TrayectosList = () => {
                   </TableCell>
                   <TableCell>
                     {trayecto.estado.toLowerCase() === 'programado' && (
-                      <Tooltip title="Iniciar Trayecto">
-                        <IconButton color="primary" onClick={() => handleIniciarTrayecto(trayecto.id)}>
-                          <PlayArrow />
-                        </IconButton>
-                      </Tooltip>
+                      <Button
+                        variant="contained"
+                        color="success"
+                        startIcon={<PlayArrow />}
+                        onClick={() => handleIniciarTrayecto(trayecto.id)}
+                        sx={{
+                          borderRadius: 3,
+                          fontWeight: 'bold',
+                          textTransform: 'none',
+                          boxShadow: 2,
+                          bgcolor: '#2e7d32',
+                          '&:hover': { bgcolor: '#1b5e20' }
+                        }}
+                      >
+                        Iniciar
+                      </Button>
                     )}
                     {trayecto.estado.toLowerCase() === 'en_curso' && (
                       <Button
