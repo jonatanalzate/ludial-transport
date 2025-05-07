@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from ..database import get_db
 from ..models.user import User, RolUsuario
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, validator
 from ..routers.auth import get_password_hash, verify_password
 
 # Schemas
@@ -11,7 +11,14 @@ class UserBase(BaseModel):
     username: str
     email: EmailStr
     nombre_completo: str
-    rol: RolUsuario
+    rol: str
+
+    @validator('rol')
+    def validate_rol(cls, v):
+        v = v.lower()
+        if v not in ['administrador', 'operador', 'supervisor', 'conductor']:
+            raise ValueError('Rol inválido')
+        return v
 
 class UserCreate(UserBase):
     password: str
@@ -121,9 +128,10 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         print(f"Error creando usuario: {str(e)}")
+        import traceback; traceback.print_exc()
         raise HTTPException(
             status_code=500,
-            detail="Error al crear el usuario"
+            detail=f"Error al crear el usuario: {str(e)}"
         )
 
 # Obtener usuario por ID
