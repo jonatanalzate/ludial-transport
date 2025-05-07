@@ -89,7 +89,7 @@ async def get_users(db: Session = Depends(get_db)):
                 "username": user.username,
                 "email": user.email,
                 "nombre_completo": user.nombre_completo,
-                "rol": RolUsuario(user.rol.lower() if user.rol else 'operador'),
+                "rol": RolUsuario(user.rol.lower() if user.rol else 'operador').value,
                 "activo": user.activo
             }
             response_users.append(user_dict)
@@ -119,7 +119,7 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
             username=user.username,
             nombre_completo=user.nombre_completo,
             hashed_password=hashed_password,
-            rol=normalize_role(user.rol)
+            rol=normalize_role(user.rol).value
         )
         db.add(db_user)
         db.commit()
@@ -198,28 +198,17 @@ async def migrate_roles(db: Session = Depends(get_db)):
 async def crear_usuarios_bulk(usuarios: UsersCreateBulk, db: Session = Depends(get_db)):
     db_usuarios = []
     for usuario in usuarios.usuarios:
-        # Verificar si el usuario ya existe
-        existing_user = db.query(User).filter(
-            (User.email == usuario.email) | (User.username == usuario.username)
-        ).first()
-        if existing_user:
-            continue  # Saltar usuarios que ya existen
-
         hashed_password = get_password_hash(usuario.password)
         db_usuario = User(
             email=usuario.email,
             username=usuario.username,
             nombre_completo=usuario.nombre_completo,
             hashed_password=hashed_password,
-            rol=normalize_role(usuario.rol),
-            activo=True
+            rol=normalize_role(usuario.rol).value
         )
         db_usuarios.append(db_usuario)
-    
-    if db_usuarios:
-        db.add_all(db_usuarios)
-        db.commit()
-        for usuario in db_usuarios:
-            db.refresh(usuario)
-    
+    db.add_all(db_usuarios)
+    db.commit()
+    for db_usuario in db_usuarios:
+        db.refresh(db_usuario)
     return db_usuarios 
