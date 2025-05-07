@@ -94,7 +94,7 @@ const UsuarioBulkUpload = ({ open, onClose, onUpload }) => {
   };
 
   const validateUsuarios = (usuarios) => {
-    const validRoles = ['administrador', 'operador', 'supervisor'];
+    const validRoles = ['administrador', 'operador', 'supervisor', 'conductor'];
     const isValid = usuarios.every(usuario => 
       usuario.username && 
       usuario.email && 
@@ -111,7 +111,7 @@ const UsuarioBulkUpload = ({ open, onClose, onUpload }) => {
         - Email válido
         - Nombre completo
         - Contraseña (mínimo 6 caracteres)
-        - Rol válido (administrador, operador, supervisor)`);
+        - Rol válido (administrador, operador, supervisor, conductor)`);
       return false;
     }
 
@@ -124,7 +124,7 @@ const UsuarioBulkUpload = ({ open, onClose, onUpload }) => {
     let type;
 
     if (format === 'csv') {
-      content = 'username,email,nombre_completo,password,rol\nuser1,user1@example.com,Usuario Uno,password123,operador\nuser2,user2@example.com,Usuario Dos,password123,supervisor';
+      content = 'username,email,nombre_completo,password,rol\nuser1,user1@example.com,Usuario Uno,password123,operador\nuser2,user2@example.com,Usuario Dos,password123,supervisor\nuser3,user3@example.com,Usuario Tres,password123,conductor';
       filename = 'plantilla_usuarios.csv';
       type = 'text/csv';
     } else {
@@ -142,6 +142,13 @@ const UsuarioBulkUpload = ({ open, onClose, onUpload }) => {
           "nombre_completo": "Usuario Dos",
           "password": "password123",
           "rol": "supervisor"
+        },
+        {
+          "username": "user3",
+          "email": "user3@example.com",
+          "nombre_completo": "Usuario Tres",
+          "password": "password123",
+          "rol": "conductor"
         }
       ], null, 2);
       filename = 'plantilla_usuarios.json';

@@ -220,9 +220,10 @@ const UsuariosList = () => {
                 label="Rol"
                 onChange={(e) => setFormData({ ...formData, rol: e.target.value })}
               >
-                <MenuItem value="admin">Administrador</MenuItem>
+                <MenuItem value="administrador">Administrador</MenuItem>
                 <MenuItem value="operador">Operador</MenuItem>
                 <MenuItem value="supervisor">Supervisor</MenuItem>
+                <MenuItem value="conductor">Conductor</MenuItem>
               </Select>
             </FormControl>
             {editingUser && (
