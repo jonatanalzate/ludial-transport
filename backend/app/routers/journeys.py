@@ -11,6 +11,7 @@ from datetime import datetime
 import logging
 import traceback
 from sqlalchemy import text
+from ..models.user import User
 
 # Configurar logging con más detalle
 logging.basicConfig(
@@ -71,7 +72,7 @@ def prepare_journey_response(trayecto: Journey, db: Session) -> dict:
     """Prepara la respuesta del trayecto con información relacionada."""
     try:
         # Obtener datos relacionados
-        conductor = db.query(Driver).filter(Driver.id == trayecto.conductor_id).first()
+        conductor = db.query(User).filter(User.id == trayecto.conductor_id).first()
         vehiculo = db.query(Vehicle).filter(Vehicle.id == trayecto.vehiculo_id).first()
         ruta = db.query(Route).filter(Route.id == trayecto.ruta_id).first()
 
@@ -88,7 +89,7 @@ def prepare_journey_response(trayecto: Journey, db: Session) -> dict:
             "cantidad_pasajeros": trayecto.cantidad_pasajeros,
             "duracion_actual": trayecto.duracion_actual,
             "nombre_ruta": ruta.nombre if ruta else "Sin ruta",
-            "nombre_conductor": conductor.nombre if conductor else "Sin conductor",
+            "nombre_conductor": conductor.nombre_completo if conductor else "Sin conductor",
             "placa_vehiculo": vehiculo.placa if vehiculo else "Sin vehículo"
         }
 
@@ -105,7 +106,7 @@ async def crear_trayecto(request: Request, journey: JourneyCreate, db: Session =
         # logger.info(f"Datos recibidos: {journey.dict()}")
         
         # Validar conductor
-        conductor = db.query(Driver).filter(Driver.id == journey.conductor_id).first()
+        conductor = db.query(User).filter(User.id == journey.conductor_id).first()
         if not conductor:
             logger.error(f"Conductor no encontrado: ID {journey.conductor_id}")
             raise HTTPException(status_code=404, detail=f"Conductor con ID {journey.conductor_id} no encontrado")

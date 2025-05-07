@@ -104,7 +104,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         return {
             "access_token": access_token,
             "token_type": "bearer",
-            "role": user_data['rol'].lower() if user_data['rol'] else 'operador'
+            "role": user_data['rol'].lower() if user_data['rol'] else 'operador',
+            "user_id": user_data['id']
         }
     except Exception as e:
         logger.error(f"Error en login: {str(e)}")

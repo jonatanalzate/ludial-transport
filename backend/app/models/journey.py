@@ -15,7 +15,7 @@ class Journey(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     ruta_id = Column(Integer, ForeignKey("rutas.id"))
-    conductor_id = Column(Integer, ForeignKey("conductores.id"))
+    conductor_id = Column(Integer, ForeignKey("usuarios.id"))
     vehiculo_id = Column(Integer, ForeignKey("vehiculos.id"))
     fecha_salida = Column(DateTime)
     fecha_llegada = Column(DateTime)
@@ -26,5 +26,5 @@ class Journey(Base):
 
     # Relaciones
     ruta = relationship("Route", back_populates="trayectos")
-    conductor = relationship("Driver", back_populates="trayectos")
+    conductor = relationship("User")
     vehiculo = relationship("Vehicle", back_populates="trayectos") 

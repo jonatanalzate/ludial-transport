@@ -26,13 +26,13 @@ const TrayectoForm = ({ open, onClose, onSubmit }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [rutasRes, conductoresRes, vehiculosRes] = await Promise.all([
+        const [rutasRes, usuariosRes, vehiculosRes] = await Promise.all([
           api.getRutas(),
-          api.getConductores(),
+          api.getUsuarios(),
           api.getVehiculos()
         ]);
         setRutas(rutasRes.data);
-        setConductores(conductoresRes.data);
+        setConductores(usuariosRes.data.filter(u => u.rol === 'conductor'));
         setVehiculos(vehiculosRes.data);
       } catch (error) {
         console.error('Error al cargar datos:', error);
@@ -87,7 +87,7 @@ const TrayectoForm = ({ open, onClose, onSubmit }) => {
               >
                 {conductores.map((conductor) => (
                   <MenuItem key={conductor.id} value={conductor.id}>
-                    {conductor.nombre}
+                    {conductor.nombre_completo}
                   </MenuItem>
                 ))}
               </TextField>

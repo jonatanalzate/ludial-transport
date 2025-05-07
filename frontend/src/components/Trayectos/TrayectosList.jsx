@@ -41,6 +41,8 @@ const TrayectosList = () => {
   const [cantidadPasajeros, setCantidadPasajeros] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [filtroRuta, setFiltroRuta] = useState('');
+  const userRole = localStorage.getItem('role');
+  const userId = parseInt(localStorage.getItem('user_id'));
 
   const fetchTrayectos = async () => {
     try {
@@ -102,6 +104,11 @@ const TrayectosList = () => {
     if (filtroRuta) {
       cumpleFiltros = cumpleFiltros && 
         trayecto.nombre_ruta.toLowerCase().includes(filtroRuta.toLowerCase());
+    }
+
+    // Si es conductor, solo mostrar trayectos asignados a él
+    if (userRole === 'conductor') {
+      cumpleFiltros = cumpleFiltros && trayecto.conductor_id === userId;
     }
 
     return cumpleFiltros;
@@ -209,24 +216,26 @@ const TrayectosList = () => {
                   </TableCell>
                   <TableCell>
                     {trayecto.estado.toLowerCase() === 'programado' && (
-                      <Button
-                        variant="contained"
-                        color="success"
-                        startIcon={<PlayArrow />}
-                        onClick={() => handleIniciarTrayecto(trayecto.id)}
-                        sx={{
-                          borderRadius: 3,
-                          fontWeight: 'bold',
-                          textTransform: 'none',
-                          boxShadow: 2,
-                          bgcolor: '#2e7d32',
-                          '&:hover': { bgcolor: '#1b5e20' }
-                        }}
-                      >
-                        Iniciar
-                      </Button>
+                      (userRole === 'conductor' ? trayecto.conductor_id === userId : true) && (
+                        <Button
+                          variant="contained"
+                          color="success"
+                          startIcon={<PlayArrow />}
+                          onClick={() => handleIniciarTrayecto(trayecto.id)}
+                          sx={{
+                            borderRadius: 3,
+                            fontWeight: 'bold',
+                            textTransform: 'none',
+                            boxShadow: 2,
+                            bgcolor: '#2e7d32',
+                            '&:hover': { bgcolor: '#1b5e20' }
+                          }}
+                        >
+                          Iniciar
+                        </Button>
+                      )
                     )}
-                    {trayecto.estado.toLowerCase() === 'en_curso' && (
+                    {trayecto.estado.toLowerCase() === 'en_curso' && userRole !== 'conductor' && (
                       <Button
                         variant="contained"
                         color="primary"

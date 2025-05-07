@@ -1,11 +1,13 @@
 from sqlalchemy import Column, Integer, String, Boolean, Enum
 import enum
 from ..database import Base
+from sqlalchemy.orm import relationship
 
 class RolUsuario(str, enum.Enum):
     ADMINISTRADOR = "administrador"
     OPERADOR = "operador"
     SUPERVISOR = "supervisor"
+    CONDUCTOR = "conductor"
 
     @classmethod
     def _missing_(cls, value):
@@ -29,6 +31,8 @@ class User(Base):
     hashed_password = Column(String)
     rol = Column(String)  # Cambiamos a String en lugar de Enum
     activo = Column(Boolean, default=True)
+
+    trayectos = relationship("Journey", back_populates="conductor")
 
     @property
     def role_enum(self):

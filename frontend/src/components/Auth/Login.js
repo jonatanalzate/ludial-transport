@@ -42,7 +42,7 @@ function Login() {
         }
       );
 
-      const { access_token, role } = response.data;
+      const { access_token, role, user_id } = response.data;
       // console.log('Role recibido:', role);
       
       // Normalizar el rol recibido
@@ -56,6 +56,7 @@ function Login() {
 
       localStorage.setItem('token', access_token);
       localStorage.setItem('role', normalizedRole);
+      localStorage.setItem('user_id', user_id);
       
       if (normalizedRole === 'operador') {
         navigate('/trayectos');
