@@ -13,7 +13,6 @@ load_dotenv()
 
 # Importar modelos primero
 from .models.user import User
-from .models.driver import Driver
 from .models.vehicle import Vehicle
 from .models.route import Route
 from .models.journey import Journey, EstadoTrayecto
@@ -25,7 +24,6 @@ from .database import engine, Base
 from .routers import (
     auth_router,
     users_router,
-    drivers_router, 
     vehicles_router, 
     routes_router, 
     journeys_router
@@ -71,7 +69,7 @@ app.add_middleware(
 Base.metadata.create_all(bind=engine)
 
 # Incluir los routers
-for router in [auth_router, users_router, drivers_router, vehicles_router, routes_router, journeys_router]:
+for router in [auth_router, users_router, vehicles_router, routes_router, journeys_router]:
     app.include_router(router)
 
 @app.get("/")
