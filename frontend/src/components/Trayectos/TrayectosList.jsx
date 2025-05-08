@@ -24,7 +24,9 @@ import {
   Paper,
   Chip,
   Tooltip,
-  IconButton
+  IconButton,
+  Alert,
+  Snackbar
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { api } from '../../services/api';
@@ -44,6 +46,9 @@ const TrayectosList = () => {
   const userRole = localStorage.getItem('role');
   const userId = parseInt(localStorage.getItem('user_id'));
   const intervalRef = useRef(null);
+  const [geoStatus, setGeoStatus] = useState('pending'); // 'pending', 'active', 'denied', 'error'
+  const [geoError, setGeoError] = useState('');
+  const [geoWatcher, setGeoWatcher] = useState(null);
 
   const fetchTrayectos = async () => {
     try {
@@ -74,9 +79,38 @@ const TrayectosList = () => {
         }
       }, 10000); // cada 10 segundos
     }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
+    if (userRole === 'conductor') {
+      if (geoWatcher) navigator.geolocation.clearWatch(geoWatcher);
+      if (navigator.geolocation) {
+        const watcher = navigator.geolocation.watchPosition(
+          (pos) => {
+            setGeoStatus('active');
+            setGeoError('');
+            const trayectoActivo = trayectos.find(t => t.conductor_id === userId && t.estado && t.estado.toLowerCase() === 'en_curso');
+            if (trayectoActivo) {
+              api.enviarUbicacion({
+                conductor_id: userId,
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude
+              });
+            }
+          },
+          (err) => {
+            setGeoStatus('denied');
+            setGeoError('Debes permitir el acceso a la ubicación para ser monitoreado.');
+          },
+          { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
+        );
+        setGeoWatcher(watcher);
+      } else {
+        setGeoStatus('error');
+        setGeoError('Tu dispositivo no soporta geolocalización.');
+      }
+      return () => {
+        if (geoWatcher) navigator.geolocation.clearWatch(geoWatcher);
+      };
+    }
+    // eslint-disable-next-line
   }, [userRole, userId, trayectos]);
 
   const handleIniciarTrayecto = async (id) => {
@@ -315,6 +349,16 @@ const TrayectosList = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {userRole === 'conductor' && (
+        <Snackbar open={geoStatus !== 'active'} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+          <Alert severity={geoStatus === 'denied' ? 'error' : 'info'} sx={{ width: '100%' }}>
+            {geoStatus === 'pending' && 'Solicitando permiso de ubicación...'}
+            {geoStatus === 'denied' && geoError}
+            {geoStatus === 'error' && geoError}
+          </Alert>
+        </Snackbar>
+      )}
     </Box>
   );
 };
