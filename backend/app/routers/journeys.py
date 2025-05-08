@@ -1,12 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Body
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from ..database import get_db
-from ..models.journey import Journey, EstadoTrayecto
+from ..models.journey import Journey, EstadoTrayecto, Location
 from ..models.vehicle import Vehicle
 from ..models.route import Route
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 import traceback
 from sqlalchemy import text
@@ -285,4 +285,41 @@ async def obtener_trayecto(trayecto_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error obteniendo trayecto {trayecto_id}: {str(e)}")
         logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e)) 
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/ubicacion", tags=["Monitoreo"])
+async def actualizar_ubicacion(
+    data: dict = Body(...),
+    db: Session = Depends(get_db)
+):
+    conductor_id = data.get("conductor_id")
+    lat = data.get("lat")
+    lng = data.get("lng")
+    if not conductor_id or lat is None or lng is None:
+        raise HTTPException(status_code=400, detail="Datos incompletos")
+    trayecto_activo = db.query(Journey).filter(Journey.conductor_id == conductor_id, Journey.estado == EstadoTrayecto.EN_CURSO).first()
+    if not trayecto_activo:
+        raise HTTPException(status_code=403, detail="No tienes trayecto activo")
+    ubicacion = db.query(Location).filter(Location.conductor_id == conductor_id).first()
+    now = datetime.now(timezone.utc)
+    if ubicacion:
+        ubicacion.lat = lat
+        ubicacion.lng = lng
+        ubicacion.timestamp = now
+    else:
+        ubicacion = Location(conductor_id=conductor_id, lat=lat, lng=lng, timestamp=now)
+        db.add(ubicacion)
+    db.commit()
+    return {"ok": True}
+
+@router.get("/ubicaciones", tags=["Monitoreo"])
+async def obtener_ubicaciones(db: Session = Depends(get_db)):
+    ubicaciones = db.query(Location).all()
+    return [
+        {
+            "conductor_id": u.conductor_id,
+            "lat": u.lat,
+            "lng": u.lng,
+            "timestamp": u.timestamp.isoformat()
+        } for u in ubicaciones
+    ] 

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum as SQLAlchemyEnum
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum as SQLAlchemyEnum, Float
 from sqlalchemy.orm import relationship
 from ..database import Base
 from enum import Enum
@@ -27,4 +27,12 @@ class Journey(Base):
     # Relaciones
     ruta = relationship("Route", back_populates="trayectos")
     conductor = relationship("User")
-    vehiculo = relationship("Vehicle", back_populates="trayectos") 
+    vehiculo = relationship("Vehicle", back_populates="trayectos")
+
+class Location(Base):
+    __tablename__ = "ubicaciones"
+    id = Column(Integer, primary_key=True, index=True)
+    conductor_id = Column(Integer, ForeignKey("usuarios.id"), unique=True)
+    lat = Column(Float, nullable=False)
+    lng = Column(Float, nullable=False)
+    timestamp = Column(DateTime, nullable=False) 
