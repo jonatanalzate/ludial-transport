@@ -48,12 +48,13 @@ const menuItems = [
   { text: 'CRM', icon: <BusinessIcon />, path: '/crm' },
   { text: 'Analítica', icon: <InsightsIcon />, path: '/analitica' },
   { text: 'Usuarios', icon: <GroupIcon />, path: '/usuarios' },
+  { text: 'Monitoreo', icon: <MapIcon />, path: '/monitoreo' },
 ];
 
 // Mover roleAccess fuera de los componentes para que sea accesible por ambos
 const roleAccess = {
   operador: ['trayectos'],
-  supervisor: ['dashboard', 'crm', 'analitica'],
+  supervisor: ['dashboard', 'crm', 'analitica', 'monitoreo'],
   administrador: [
     'dashboard',
     'trayectos',
@@ -62,7 +63,8 @@ const roleAccess = {
     'crm',
     'analitica',
     'usuarios',
-    'configuracion'
+    'configuracion',
+    'monitoreo'
   ],
   conductor: ['trayectos']
 };
