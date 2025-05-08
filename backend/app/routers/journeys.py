@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from ..database import get_db
 from ..models.journey import Journey, EstadoTrayecto
-from ..models.driver import Driver
 from ..models.vehicle import Vehicle
 from ..models.route import Route
 from pydantic import BaseModel
