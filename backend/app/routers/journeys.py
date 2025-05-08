@@ -259,7 +259,13 @@ async def finalizar_trayecto(trayecto_id: int, datos: FinalizarTrayectoRequest, 
         trayecto.cantidad_pasajeros = datos.cantidad_pasajeros
         
         if trayecto.fecha_salida:
-            duracion = trayecto.fecha_llegada - trayecto.fecha_salida
+            llegada = trayecto.fecha_llegada
+            salida = trayecto.fecha_salida
+            if llegada.tzinfo is None:
+                llegada = llegada.replace(tzinfo=timezone.utc)
+            if salida.tzinfo is None:
+                salida = salida.replace(tzinfo=timezone.utc)
+            duracion = llegada - salida
             trayecto.duracion_minutos = int(duracion.total_seconds() / 60)
         
         db.commit()
