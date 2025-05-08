@@ -43,7 +43,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'Trayectos', icon: <TimelineIcon />, path: '/trayectos' },
-  { text: 'Conductores', icon: <PersonIcon />, path: '/conductores' },
   { text: 'Vehículos', icon: <DirectionsBusIcon />, path: '/vehiculos' },
   { text: 'Rutas', icon: <MapIcon />, path: '/rutas' },
   { text: 'CRM', icon: <BusinessIcon />, path: '/crm' },
@@ -58,7 +57,6 @@ const roleAccess = {
   administrador: [
     'dashboard',
     'trayectos',
-    'conductores',
     'vehiculos',
     'rutas',
     'crm',
@@ -66,7 +64,6 @@ const roleAccess = {
     'usuarios',
     'configuracion'
   ],
-  conductor: ['trayectos']
 };
 
 function Layout({ children }) {

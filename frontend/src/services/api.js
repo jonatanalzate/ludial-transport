@@ -70,13 +70,6 @@ export const api = {
     });
   },
 
-  // Conductores
-  getConductores: () => axiosInstance.get('/conductores'),
-  createConductor: (data) => axiosInstance.post('/conductores', data),
-  updateConductor: (id, data) => axiosInstance.put(`/conductores/${id}`, data),
-  deleteConductor: (id) => axiosInstance.delete(`/conductores/${id}`),
-  createConductoresBulk: (data) => axiosInstance.post('/conductores/bulk', data),
-
   // Vehículos
   getVehiculos: () => axiosInstance.get('/vehiculos'),
   createVehiculo: (data) => axiosInstance.post('/vehiculos', data),

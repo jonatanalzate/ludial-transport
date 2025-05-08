@@ -26,7 +26,6 @@ const Sidebar = ({ open, onClose }) => {
     administrador: [
       { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
       { text: 'Trayectos', icon: <DirectionsBus />, path: '/trayectos' },
-      { text: 'Conductores', icon: <Person />, path: '/conductores' },
       { text: 'Vehículos', icon: <DirectionsBus />, path: '/vehiculos' },
       { text: 'Rutas', icon: <Route />, path: '/rutas' },
       { text: 'CRM', icon: <Business />, path: '/crm' },
@@ -38,9 +37,6 @@ const Sidebar = ({ open, onClose }) => {
       { text: 'CRM', icon: <Business />, path: '/crm' },
     ],
     operador: [
-      { text: 'Trayectos', icon: <DirectionsBus />, path: '/trayectos' },
-    ],
-    conductor: [
       { text: 'Trayectos', icon: <DirectionsBus />, path: '/trayectos' },
     ],
   };
