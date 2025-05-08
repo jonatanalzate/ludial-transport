@@ -230,7 +230,7 @@ async def iniciar_trayecto(trayecto_id: int, db: Session = Depends(get_db)):
             raise HTTPException(status_code=400, detail="El trayecto no está en estado PROGRAMADO")
         
         trayecto.estado = EstadoTrayecto.EN_CURSO
-        trayecto.fecha_salida = datetime.now()
+        trayecto.fecha_salida = datetime.now(timezone.utc)
         db.commit()
         db.refresh(trayecto)
         return prepare_journey_response(trayecto, db)
@@ -255,7 +255,7 @@ async def finalizar_trayecto(trayecto_id: int, datos: FinalizarTrayectoRequest, 
             )
         
         trayecto.estado = EstadoTrayecto.COMPLETADO
-        trayecto.fecha_llegada = datetime.now()
+        trayecto.fecha_llegada = datetime.now(timezone.utc)
         trayecto.cantidad_pasajeros = datos.cantidad_pasajeros
         
         if trayecto.fecha_salida:
