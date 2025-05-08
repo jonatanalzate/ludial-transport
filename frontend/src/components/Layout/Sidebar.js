@@ -30,11 +30,13 @@ const Sidebar = ({ open, onClose }) => {
       { text: 'Rutas', icon: <Route />, path: '/rutas' },
       { text: 'CRM', icon: <Business />, path: '/crm' },
       { text: 'Usuarios', icon: <Group />, path: '/usuarios' },
+      { text: 'Monitoreo', icon: <DirectionsBus />, path: '/monitoreo' },
       { text: 'Configuración', icon: <Settings />, path: '/configuracion' },
     ],
     supervisor: [
       { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
       { text: 'CRM', icon: <Business />, path: '/crm' },
+      { text: 'Monitoreo', icon: <DirectionsBus />, path: '/monitoreo' },
     ],
     operador: [
       { text: 'Trayectos', icon: <DirectionsBus />, path: '/trayectos' },

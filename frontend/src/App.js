@@ -12,6 +12,7 @@ import UsuariosList from './components/Usuarios/UsuariosList';
 import CRMList from './components/CRM/CRMList';
 import Configuracion from './components/Configuracion/Configuracion';
 import AnaliticaList from './components/Analitica/AnaliticaList';
+import Monitoreo from './components/Monitoreo/Monitoreo';
 
 function App() {
   return (
@@ -37,7 +38,8 @@ function App() {
           { path: '/crm', component: <CRMList /> },
           { path: '/analitica', component: <AnaliticaList /> },
           { path: '/usuarios', component: <UsuariosList /> },
-          { path: '/configuracion', component: <Configuracion /> }
+          { path: '/configuracion', component: <Configuracion /> },
+          { path: '/monitoreo', component: <Monitoreo /> }
         ].map(({ path, component }) => (
           <Route
             key={path}

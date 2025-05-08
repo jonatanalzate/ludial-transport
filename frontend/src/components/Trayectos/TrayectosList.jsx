@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Button,
@@ -43,6 +43,7 @@ const TrayectosList = () => {
   const [filtroRuta, setFiltroRuta] = useState('');
   const userRole = localStorage.getItem('role');
   const userId = parseInt(localStorage.getItem('user_id'));
+  const intervalRef = useRef(null);
 
   const fetchTrayectos = async () => {
     try {
@@ -57,7 +58,26 @@ const TrayectosList = () => {
 
   useEffect(() => {
     fetchTrayectos();
-  }, []);
+    // Si es conductor, enviar ubicación periódicamente si tiene trayecto activo
+    if (userRole === 'conductor') {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = setInterval(() => {
+        const trayectoActivo = trayectos.find(t => t.conductor_id === userId && t.estado && t.estado.toLowerCase() === 'en_curso');
+        if (trayectoActivo && navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition((pos) => {
+            api.enviarUbicacion({
+              conductor_id: userId,
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude
+            });
+          });
+        }
+      }, 10000); // cada 10 segundos
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [userRole, userId, trayectos]);
 
   const handleIniciarTrayecto = async (id) => {
     try {

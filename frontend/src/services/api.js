@@ -69,6 +69,8 @@ export const api = {
       cantidad_pasajeros: parseInt(cantidad_pasajeros) 
     });
   },
+  getUbicaciones: () => axiosInstance.get('/trayectos/ubicaciones'),
+  enviarUbicacion: (data) => axiosInstance.post('/trayectos/ubicacion', data),
 
   // Vehículos
   getVehiculos: () => axiosInstance.get('/vehiculos'),
