@@ -71,18 +71,19 @@ const Dashboard = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [vehiculosRes, conductoresRes, rutasRes, trayectosRes] = await Promise.all([
+        const [vehiculosRes, usuariosRes, rutasRes, trayectosRes] = await Promise.all([
           api.getVehiculos(),
-          api.getConductores(),
+          api.getUsuarios(),
           api.getRutas(),
           api.getTrayectos()
         ]);
 
-        // console.log('Trayectos recibidos:', trayectosRes.data);
+        // Filtrar conductores desde usuarios
+        const conductores = usuariosRes.data.filter(u => u.rol === 'conductor');
+
         const activos = trayectosRes.data.filter(
           t => t.estado && t.estado.toLowerCase() === 'en_curso'
         );
-        // console.log('Trayectos activos:', activos);
         setTrayectosActivos(activos);
 
         setStats({
@@ -98,8 +99,8 @@ const Dashboard = () => {
           conductores: {
             loading: false,
             data: {
-              'Total': conductoresRes.data.length,
-              'En servicio': conductoresRes.data.filter(c => 
+              'Total': conductores.length,
+              'En servicio': conductores.filter(c => 
                 activos.some(t => t.conductor_id === c.id)
               ).length
             }
