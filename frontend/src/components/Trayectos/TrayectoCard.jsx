@@ -28,7 +28,7 @@ const getEstadoColor = (estado) => {
 const TrayectoCard = ({ trayecto, onIniciar, onFinalizar }) => {
   const formatTime = (date) => {
     if (!date) return 'No definido';
-    return new Date(date).toLocaleTimeString();
+    return new Date(date).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota' });
   };
 
   return (

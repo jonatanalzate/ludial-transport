@@ -43,7 +43,7 @@ const Monitoreo = () => {
             <Popup>
               <div>
                 <b>Conductor ID:</b> {u.conductor_id}<br />
-                <b>Última actualización:</b> {new Date(u.timestamp).toLocaleTimeString()}
+                <b>Última actualización:</b> {new Date(u.timestamp).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota' })}
               </div>
             </Popup>
           </Marker>

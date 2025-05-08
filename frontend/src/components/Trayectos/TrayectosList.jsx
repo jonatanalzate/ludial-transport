@@ -263,10 +263,10 @@ const TrayectosList = () => {
                     </Box>
                   </TableCell>
                   <TableCell sx={{ fontFamily: 'monospace' }}>
-                    {trayecto.fecha_salida ? new Date(trayecto.fecha_salida).toLocaleTimeString() : '-'}
+                    {trayecto.fecha_salida ? new Date(trayecto.fecha_salida).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota' }) : '-'}
                   </TableCell>
                   <TableCell sx={{ fontFamily: 'monospace' }}>
-                    {trayecto.fecha_llegada ? new Date(trayecto.fecha_llegada).toLocaleTimeString() : '-'}
+                    {trayecto.fecha_llegada ? new Date(trayecto.fecha_llegada).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota' }) : '-'}
                   </TableCell>
                   <TableCell>
                     {trayecto.estado.toLowerCase() === 'programado' && (
