@@ -55,7 +55,7 @@ const TrayectosList = () => {
       const response = await api.getTrayectos();
       setTrayectos(response.data);
     } catch (error) {
-      console.error('Error al cargar trayectos:', error);
+      // console.error('Error al cargar trayectos:', error);
     } finally {
       setLoading(false);
     }
@@ -118,7 +118,7 @@ const TrayectosList = () => {
       await api.iniciarTrayecto(id);
       fetchTrayectos();
     } catch (error) {
-      console.error('Error al iniciar trayecto:', error);
+      // console.error('Error al iniciar trayecto:', error);
     }
   };
 
@@ -141,7 +141,7 @@ const TrayectosList = () => {
       setCantidadPasajeros('');
       await fetchTrayectos();
     } catch (error) {
-      console.error('Error al finalizar trayecto:', error);
+      // console.error('Error al finalizar trayecto:', error);
       alert('Error al finalizar el trayecto: ' + (error.response?.data?.detail || 'Error desconocido'));
     }
   };
@@ -324,7 +324,7 @@ const TrayectosList = () => {
             fetchTrayectos();
             setOpenForm(false);
           } catch (error) {
-            console.error('Error al crear trayecto:', error);
+            // console.error('Error al crear trayecto:', error);
           }
         }}
       />
