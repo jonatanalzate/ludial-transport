@@ -43,7 +43,7 @@ function Login() {
       );
 
       const { access_token, role, user_id } = response.data;
-      // console.log('Role recibido:', role); // (comentado por seguridad)
+      console.log('Login response:', response.data); // LOG DE DEPURACIÓN
       
       // Normalizar el rol recibido de forma robusta
       const normalizedRole = (role || '').trim().toLowerCase();
