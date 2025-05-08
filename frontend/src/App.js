@@ -6,7 +6,6 @@ import Login from './components/Auth/Login';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import Dashboard from './components/Dashboard/Dashboard';
 import TrayectosList from './components/Trayectos/TrayectosList';
-import ConductoresList from './components/Conductores/ConductoresList';
 import VehiculosList from './components/Vehiculos/VehiculosList';
 import RutasList from './components/Rutas/RutasList';
 import UsuariosList from './components/Usuarios/UsuariosList';
@@ -33,7 +32,6 @@ function App() {
         {[
           { path: '/dashboard', component: <Dashboard /> },
           { path: '/trayectos', component: <TrayectosList /> },
-          { path: '/conductores', component: <ConductoresList /> },
           { path: '/vehiculos', component: <VehiculosList /> },
           { path: '/rutas', component: <RutasList /> },
           { path: '/crm', component: <CRMList /> },
