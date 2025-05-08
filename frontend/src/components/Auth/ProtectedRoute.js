@@ -12,7 +12,8 @@ const roleAccess = {
         'crm',
         'usuarios',
         'configuracion'
-    ]
+    ],
+    conductor: ['trayectos']
 };
 
 const ProtectedRoute = ({ children }) => {
