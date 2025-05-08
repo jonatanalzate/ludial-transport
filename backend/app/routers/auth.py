@@ -100,7 +100,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         
         access_token = create_access_token(token_data)
         
-        logger.info(f"Login exitoso para usuario: {form_data.username}")
+        # logger.info(f"Login exitoso para usuario: {form_data.username}")
         return {
             "access_token": access_token,
             "token_type": "bearer",

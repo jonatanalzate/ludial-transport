@@ -43,13 +43,13 @@ function Login() {
       );
 
       const { access_token, role, user_id } = response.data;
-      // console.log('Role recibido:', role);
+      // console.log('Role recibido:', role); // (comentado por seguridad)
       
       // Normalizar el rol recibido
       const normalizedRole = role.toLowerCase();
-      // console.log('Role normalizado:', normalizedRole);
+      // console.log('Role normalizado:', normalizedRole); // (comentado por seguridad)
       
-      if (!normalizedRole || !['operador', 'supervisor', 'administrador'].includes(normalizedRole)) {
+      if (!normalizedRole || !['operador', 'supervisor', 'administrador', 'conductor'].includes(normalizedRole)) {
         console.error('Rol inválido recibido:', role);
         throw new Error('Rol de usuario inválido');
       }
@@ -58,7 +58,7 @@ function Login() {
       localStorage.setItem('role', normalizedRole);
       localStorage.setItem('user_id', user_id);
       
-      if (normalizedRole === 'operador') {
+      if (normalizedRole === 'operador' || normalizedRole === 'conductor') {
         navigate('/trayectos');
       } else if (normalizedRole === 'supervisor') {
         navigate('/dashboard');

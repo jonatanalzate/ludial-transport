@@ -107,7 +107,7 @@ async def get_users(db: Session = Depends(get_db)):
 @router.post("/", response_model=dict)
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     try:
-        print(f"[DEBUG] Datos recibidos para crear usuario: {user.dict()}")
+        # print(f"[DEBUG] Datos recibidos para crear usuario: {user.dict()}")
         db_user = db.query(User).filter(
             (User.email == user.email) | (User.username == user.username)
         ).first()
@@ -123,7 +123,7 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
             hashed_password=hashed_password,
             rol=normalize_role(user.rol).value
         )
-        print(f"[DEBUG] Objeto User a guardar: {db_user.__dict__}")
+        # print(f"[DEBUG] Objeto User a guardar: {db_user.__dict__}")
         db.add(db_user)
         db.commit()
         db.refresh(db_user)

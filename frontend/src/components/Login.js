@@ -16,7 +16,7 @@ function Login() {
     setError('');
 
     try {
-      // console.log('Intentando login con URL:', `${baseURL}/auth/token`);
+      // console.log('Intentando login con URL:', `${baseURL}/auth/token`); // (comentado por seguridad)
 
       // Crear FormData para enviar las credenciales
       const formData = new URLSearchParams();
