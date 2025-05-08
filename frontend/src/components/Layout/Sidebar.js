@@ -39,6 +39,9 @@ const Sidebar = ({ open, onClose }) => {
     operador: [
       { text: 'Trayectos', icon: <DirectionsBus />, path: '/trayectos' },
     ],
+    conductor: [
+      { text: 'Trayectos', icon: <DirectionsBus />, path: '/trayectos' },
+    ],
   };
 
   // Obtener los menús correspondientes al rol del usuario

@@ -12,6 +12,7 @@ const roleAccess = {
         'usuarios',
         'configuracion'
     ],
+    conductor: ['trayectos']
 };
 
 const ProtectedRoute = ({ children }) => {
@@ -33,7 +34,7 @@ const ProtectedRoute = ({ children }) => {
     // Si la ruta está vacía, redirigir al dashboard o trayectos según el rol
     const currentPath = location.pathname.split('/')[1];
     if (!currentPath) {
-        const defaultRoute = (userRole === 'operador') ? '/trayectos' : '/dashboard';
+        const defaultRoute = (userRole === 'operador' || userRole === 'conductor') ? '/trayectos' : '/dashboard';
         return <Navigate to={defaultRoute} replace />;
     }
 

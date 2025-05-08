@@ -64,6 +64,7 @@ const roleAccess = {
     'usuarios',
     'configuracion'
   ],
+  conductor: ['trayectos']
 };
 
 function Layout({ children }) {
