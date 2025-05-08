@@ -45,8 +45,8 @@ function Login() {
       const { access_token, role, user_id } = response.data;
       // console.log('Role recibido:', role); // (comentado por seguridad)
       
-      // Normalizar el rol recibido
-      const normalizedRole = role.toLowerCase();
+      // Normalizar el rol recibido de forma robusta
+      const normalizedRole = (role || '').trim().toLowerCase();
       // console.log('Role normalizado:', normalizedRole); // (comentado por seguridad)
       
       if (!normalizedRole || !['operador', 'supervisor', 'administrador', 'conductor'].includes(normalizedRole)) {
