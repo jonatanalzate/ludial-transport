@@ -280,6 +280,35 @@ async def finalizar_trayecto(trayecto_id: int, datos: FinalizarTrayectoRequest, 
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/ubicaciones", tags=["Monitoreo"])
+async def obtener_ubicaciones(db: Session = Depends(get_db)):
+    try:
+        ubicaciones = db.query(Location).all()
+        response_data = [
+            {
+                "conductor_id": u.conductor_id,
+                "lat": u.lat,
+                "lng": u.lng,
+                "timestamp": u.timestamp.isoformat() if u.timestamp else None
+            } for u in ubicaciones
+        ]
+        logger.info(f"Datos de ubicaciones a enviar (antes de serialización): {response_data}")
+
+        # Intentar serializar manualmente para depuración
+        try:
+            json_compatible_data = jsonable_encoder(response_data)
+            logger.info(f"Datos de ubicaciones serializados correctamente: {json_compatible_data}")
+            return json_compatible_data
+        except Exception as serial_e:
+            logger.error(f"Error durante la serialización de ubicaciones: {str(serial_e)}")
+            logger.error(traceback.format_exc())
+            raise HTTPException(status_code=500, detail="Error de serialización al obtener ubicaciones")
+
+    except Exception as e:
+        logger.error(f"Error al obtener o serializar ubicaciones: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail="Error interno al obtener ubicaciones")
+
 @router.get("/{trayecto_id}", response_model=JourneyResponse)
 async def obtener_trayecto(trayecto_id: int, db: Session = Depends(get_db)):
     try:
@@ -317,33 +346,4 @@ async def actualizar_ubicacion(
         ubicacion = Location(conductor_id=conductor_id, lat=lat, lng=lng, timestamp=now)
         db.add(ubicacion)
     db.commit()
-    return {"ok": True}
-
-@router.get("/ubicaciones", tags=["Monitoreo"])
-async def obtener_ubicaciones(db: Session = Depends(get_db)):
-    try:
-        ubicaciones = db.query(Location).all()
-        response_data = [
-            {
-                "conductor_id": u.conductor_id,
-                "lat": u.lat,
-                "lng": u.lng,
-                "timestamp": u.timestamp.isoformat() if u.timestamp else None
-            } for u in ubicaciones
-        ]
-        logger.info(f"Datos de ubicaciones a enviar (antes de serialización): {response_data}")
-
-        # Intentar serializar manualmente para depuración
-        try:
-            json_compatible_data = jsonable_encoder(response_data)
-            logger.info(f"Datos de ubicaciones serializados correctamente: {json_compatible_data}")
-            return json_compatible_data
-        except Exception as serial_e:
-            logger.error(f"Error durante la serialización de ubicaciones: {str(serial_e)}")
-            logger.error(traceback.format_exc())
-            raise HTTPException(status_code=500, detail="Error de serialización al obtener ubicaciones")
-
-    except Exception as e:
-        logger.error(f"Error al obtener o serializar ubicaciones: {str(e)}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail="Error interno al obtener ubicaciones") 
+    return {"ok": True} 
