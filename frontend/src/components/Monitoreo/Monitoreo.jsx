@@ -97,8 +97,9 @@ const Monitoreo = () => {
       } else {
         // Animar el movimiento del marcador
         const oldPosition = markers.current[conductorId].getLngLat();
-        const points = turf.points([oldPosition, newPosition]);
-        const line = turf.lineString([oldPosition, newPosition]);
+        const oldPositionArray = [oldPosition.lng, oldPosition.lat];
+        const points = turf.points([oldPositionArray, newPosition]);
+        const line = turf.lineString([oldPositionArray, newPosition]);
         const distance = turf.length(line);
         const duration = 5000; // 5 segundos para la animación
 
