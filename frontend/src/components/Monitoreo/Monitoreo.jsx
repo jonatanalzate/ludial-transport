@@ -5,7 +5,7 @@ import * as turf from '@turf/turf';
 import { api } from '../../services/api';
 
 // Reemplaza esto con tu token de Mapbox
-mapboxgl.accessToken = 'pk.eyJ1IjoianJvamFzMjg3NjMiLCJhIjoiY2x2dXJqZ2RqMDF0MzJqcnV2dWJqZ2RqIn0.2dXJqZ2RqMDF0MzJqcnV2dWJqZ2Rq';
+mapboxgl.accessToken = 'pk.eyJ1Ijoiam9uYXRhbmFsemF0ZSIsImEiOiJjbWIzbHpseWMwdjFiMmlwdmlnOWxpanJlIn0.f9HnAG8fxbXcRjWPphld1Q';
 
 const manizalesCoords = [-75.5138, 5.0703];
 
