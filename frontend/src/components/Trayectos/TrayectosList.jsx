@@ -116,6 +116,10 @@ const TrayectosList = () => {
   const handleIniciarTrayecto = async (id) => {
     try {
       await api.iniciarTrayecto(id);
+
+      // Añadir un pequeño retraso para dar tiempo a la base de datos
+      await new Promise(resolve => setTimeout(resolve, 500)); // Esperar 500ms
+
       // Una vez iniciado el trayecto, enviar la ubicación actual
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
