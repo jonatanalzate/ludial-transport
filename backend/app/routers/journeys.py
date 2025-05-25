@@ -11,6 +11,7 @@ import logging
 import traceback
 from sqlalchemy import text
 from ..models.user import User
+from fastapi.encoders import jsonable_encoder
 
 # Configurar logging con más detalle
 logging.basicConfig(
@@ -331,7 +332,17 @@ async def obtener_ubicaciones(db: Session = Depends(get_db)):
             } for u in ubicaciones
         ]
         logger.info(f"Datos de ubicaciones a enviar (antes de serialización): {response_data}")
-        return response_data
+
+        # Intentar serializar manualmente para depuración
+        try:
+            json_compatible_data = jsonable_encoder(response_data)
+            logger.info(f"Datos de ubicaciones serializados correctamente: {json_compatible_data}")
+            return json_compatible_data
+        except Exception as serial_e:
+            logger.error(f"Error durante la serialización de ubicaciones: {str(serial_e)}")
+            logger.error(traceback.format_exc())
+            raise HTTPException(status_code=500, detail="Error de serialización al obtener ubicaciones")
+
     except Exception as e:
         logger.error(f"Error al obtener o serializar ubicaciones: {str(e)}")
         logger.error(traceback.format_exc())
