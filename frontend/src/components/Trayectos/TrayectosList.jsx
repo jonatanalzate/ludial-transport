@@ -116,9 +116,28 @@ const TrayectosList = () => {
   const handleIniciarTrayecto = async (id) => {
     try {
       await api.iniciarTrayecto(id);
+      // Una vez iniciado el trayecto, enviar la ubicación actual
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            api.enviarUbicacion({
+              conductor_id: userId, // Asumiendo que userId está disponible en este alcance
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude
+            });
+          },
+          (err) => {
+            console.error('Error obteniendo ubicación al iniciar trayecto:', err);
+            alert('No se pudo obtener la ubicación inicial. Asegúrate de permitir el acceso a la ubicación.');
+          }
+        );
+      } else {
+        alert('Tu dispositivo no soporta geolocalización, no se podrá registrar la ubicación inicial.');
+      }
       fetchTrayectos();
     } catch (error) {
       // console.error('Error al iniciar trayecto:', error);
+      alert('Error al iniciar el trayecto: ' + (error.response?.data?.detail || 'Error desconocido'));
     }
   };
 
