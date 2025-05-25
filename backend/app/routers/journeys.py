@@ -320,14 +320,19 @@ async def actualizar_ubicacion(
 
 @router.get("/ubicaciones", tags=["Monitoreo"])
 async def obtener_ubicaciones(db: Session = Depends(get_db)):
-    ubicaciones = db.query(Location).all()
-    response_data = [
-        {
-            "conductor_id": u.conductor_id,
-            "lat": u.lat,
-            "lng": u.lng,
-            "timestamp": u.timestamp.isoformat() if u.timestamp else None
-        } for u in ubicaciones
-    ]
-    logger.info(f"Datos de ubicaciones a enviar: {response_data}")
-    return response_data 
+    try:
+        ubicaciones = db.query(Location).all()
+        response_data = [
+            {
+                "conductor_id": u.conductor_id,
+                "lat": u.lat,
+                "lng": u.lng,
+                "timestamp": u.timestamp.isoformat() if u.timestamp else None
+            } for u in ubicaciones
+        ]
+        logger.info(f"Datos de ubicaciones a enviar (antes de serialización): {response_data}")
+        return response_data
+    except Exception as e:
+        logger.error(f"Error al obtener o serializar ubicaciones: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail="Error interno al obtener ubicaciones") 
