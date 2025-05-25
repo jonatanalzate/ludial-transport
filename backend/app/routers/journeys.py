@@ -321,11 +321,13 @@ async def actualizar_ubicacion(
 @router.get("/ubicaciones", tags=["Monitoreo"])
 async def obtener_ubicaciones(db: Session = Depends(get_db)):
     ubicaciones = db.query(Location).all()
-    return [
+    response_data = [
         {
             "conductor_id": u.conductor_id,
             "lat": u.lat,
             "lng": u.lng,
-            "timestamp": u.timestamp.isoformat()
+            "timestamp": u.timestamp.isoformat() if u.timestamp else None
         } for u in ubicaciones
-    ] 
+    ]
+    logger.info(f"Datos de ubicaciones a enviar: {response_data}")
+    return response_data 
