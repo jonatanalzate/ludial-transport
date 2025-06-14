@@ -43,7 +43,7 @@ class JourneyUpdate(BaseModel):
 
 class JourneyResponse(BaseModel):
     id: int
-    conductor_id: int
+    conductor_id: Optional[int]
     vehiculo_id: int
     ruta_id: int
     estado: str
