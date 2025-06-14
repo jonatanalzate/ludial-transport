@@ -2,13 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Box, Paper, Typography, LinearProgress } from '@mui/material';
 import { DirectionsBus } from '@mui/icons-material';
 
-const getStartTimeColombia = (fecha) => {
-  if (!fecha) return 0;
-  // Convertir a hora Colombia usando toLocaleString y luego parsear
-  const localString = new Date(fecha).toLocaleString('en-US', { timeZone: 'America/Bogota' });
-  return new Date(localString).getTime();
-};
-
+// No es necesario convertir a hora Colombia y luego parsear.
+// new Date(fecha) con un ISO string con Z/+-HH:MM ya es timezone-aware.
+// toLocaleTimeString() directamente puede formatear a la zona horaria deseada.
 const formatTimeColombia = (fecha) => {
   if (!fecha) return '-';
   return new Date(fecha).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota' });
@@ -20,22 +16,23 @@ const TrayectoProgress = ({ trayecto }) => {
 
   useEffect(() => {
     if (trayecto.estado && trayecto.estado.toLowerCase() === 'en_curso') {
-      const startTime = getStartTimeColombia(trayecto.fecha_salida);
-      const now = new Date().getTime();
-      const elapsedMinutes = Math.max(0, (now - startTime) / (1000 * 60));
-      // Calcular progreso inicial
-      const initialProgress = Math.min((elapsedMinutes / 60) * 100, 100);
-      setProgress(initialProgress);
-      setPosition(initialProgress);
+      const startDate = new Date(trayecto.fecha_salida);
+      // Usar la duración real del trayecto si está disponible, sino un valor por defecto
+      const totalDurationMinutes = trayecto.duracion_minutos || 60; 
 
-      // Actualizar la posición cada segundo
-      const interval = setInterval(() => {
-        const currentTime = new Date().getTime();
-        const currentElapsed = Math.max(0, (currentTime - startTime) / (1000 * 60));
-        const newProgress = Math.min((currentElapsed / 60) * 100, 100);
+      const updateProgress = () => {
+        const now = new Date();
+        // Calcular la diferencia en milisegundos entre las fechas UTC
+        const elapsedMilliseconds = now.getTime() - startDate.getTime();
+        const elapsedMinutes = Math.max(0, elapsedMilliseconds / (1000 * 60));
+        
+        const newProgress = Math.min((elapsedMinutes / totalDurationMinutes) * 100, 100);
         setProgress(newProgress);
         setPosition(newProgress);
-      }, 1000);
+      };
+
+      updateProgress(); // Llamar una vez inmediatamente
+      const interval = setInterval(updateProgress, 1000);
 
       return () => clearInterval(interval);
     }
@@ -127,7 +124,7 @@ const TrayectoProgress = ({ trayecto }) => {
           Salida: {formatTimeColombia(trayecto.fecha_salida)}
         </Typography>
         <Typography variant="body2">
-          Tiempo transcurrido: {Math.floor(progress * 0.6)} min
+          Tiempo transcurrido: {Math.floor((progress / 100) * totalDurationMinutes)} min
         </Typography>
       </Box>
     </Paper>
