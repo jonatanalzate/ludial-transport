@@ -14,11 +14,12 @@ const TrayectoProgress = ({ trayecto }) => {
   const [progress, setProgress] = useState(0);
   const [position, setPosition] = useState(0);
 
+  // Definir totalDurationMinutes aquí, accesible en todo el componente
+  const totalDurationMinutes = trayecto.duracion_minutos || 60; 
+
   useEffect(() => {
     if (trayecto.estado && trayecto.estado.toLowerCase() === 'en_curso') {
       const startDate = new Date(trayecto.fecha_salida);
-      // Usar la duración real del trayecto si está disponible, sino un valor por defecto
-      const totalDurationMinutes = trayecto.duracion_minutos || 60; 
 
       const updateProgress = () => {
         const now = new Date();
@@ -36,7 +37,7 @@ const TrayectoProgress = ({ trayecto }) => {
 
       return () => clearInterval(interval);
     }
-  }, [trayecto]);
+  }, [trayecto, totalDurationMinutes]); // Añadir totalDurationMinutes a las dependencias del useEffect
 
   return (
     <Paper 
