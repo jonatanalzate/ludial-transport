@@ -4,19 +4,19 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 # Obtener la URL de la base de datos del entorno
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./transporte.db")
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./transporte.db")
 
 # Si estamos en Railway (PostgreSQL), necesitamos ajustar la URL
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 # Configurar el engine según el tipo de base de datos
-if DATABASE_URL.startswith("sqlite"):
+if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
     engine = create_engine(
-        DATABASE_URL, connect_args={"check_same_thread": False}
+        SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
     )
 else:
-    engine = create_engine(DATABASE_URL)
+    engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
