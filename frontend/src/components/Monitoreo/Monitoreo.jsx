@@ -9,6 +9,8 @@ mapboxgl.accessToken = 'pk.eyJ1Ijoiam9uYXRhbmFsemF0ZSIsImEiOiJjbWIzbHpseWMwdjFiM
 
 const manizalesCoords = [-75.5138, 5.0703];
 
+const VEHICLE_ICON = 'https://cdn-icons-png.flaticon.com/512/854/854894.png'; // Ícono más moderno y minimalista
+
 const Monitoreo = () => {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -21,7 +23,7 @@ const Monitoreo = () => {
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
+      style: 'mapbox://styles/mapbox/navigation-day-v1', // Estilo tipo Waymo
       center: manizalesCoords,
       zoom: 13
     });
@@ -82,8 +84,10 @@ const Monitoreo = () => {
         el.className = 'vehicle-marker';
         el.style.width = '32px';
         el.style.height = '32px';
-        el.style.backgroundImage = 'url(https://cdn-icons-png.flaticon.com/512/194/194938.png)';
+        el.style.backgroundImage = `url(${VEHICLE_ICON})`;
         el.style.backgroundSize = 'cover';
+        el.style.borderRadius = '50%';
+        el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
 
         markers.current[conductorId] = new mapboxgl.Marker(el)
           .setLngLat(newPosition)
@@ -163,8 +167,9 @@ const Monitoreo = () => {
               'line-cap': 'round'
             },
             paint: {
-              'line-color': '#888',
-              'line-width': 2
+              'line-color': '#00bfff', // Azul vibrante, estilo Waymo
+              'line-width': 5,
+              'line-opacity': 0.85
             }
           });
         }
