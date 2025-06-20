@@ -88,7 +88,7 @@ function Layout({ children }) {
 
   // Verificar si el usuario tiene acceso a la ruta actual
   const currentPath = location.pathname.split('/')[1];
-  const hasAccess = roleAccess[userRole]?.includes(currentPath);
+  const hasAccess = userRole === 'administrador' ? true : roleAccess[userRole]?.includes(currentPath);
 
   return (
     <Box sx={{ display: 'flex' }}>
