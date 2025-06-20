@@ -58,7 +58,9 @@ function Login() {
       localStorage.setItem('role', normalizedRole);
       localStorage.setItem('user_id', user_id);
       
-      if (normalizedRole === 'operador' || normalizedRole === 'conductor') {
+      if (normalizedRole === 'conductor') {
+        navigate('/mis-trayectos');
+      } else if (normalizedRole === 'operador') {
         navigate('/trayectos');
       } else if (normalizedRole === 'supervisor') {
         navigate('/dashboard');

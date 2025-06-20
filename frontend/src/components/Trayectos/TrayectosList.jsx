@@ -271,13 +271,15 @@ const TrayectosList = () => {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4">Trayectos</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setOpenForm(true)}
-        >
-          Nuevo Trayecto
-        </Button>
+        {userRole !== 'conductor' && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setOpenForm(true)}
+          >
+            Nuevo Trayecto
+          </Button>
+        )}
       </Box>
 
       <Stack direction="row" spacing={2} sx={{ mb: 3 }}>

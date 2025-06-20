@@ -23,6 +23,7 @@ import {
   Settings
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 
 const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
@@ -40,6 +41,7 @@ const Sidebar = ({ open, onClose }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
+  const userRole = localStorage.getItem('role');
 
   const drawerContent = (
     <>
@@ -65,26 +67,47 @@ const Sidebar = ({ open, onClose }) => {
         </Box>
       </Box>
       <List sx={{ bgcolor: '#1e2a38', color: 'white', height: '100%' }}>
-        {menuItems.map((item) => (
+        {userRole === 'conductor' && (
           <ListItem
             button
-            key={item.text}
+            key="Mis Trayectos"
             onClick={() => {
-              navigate(item.path);
+              navigate('/mis-trayectos');
               if (isMobile) onClose();
             }}
             sx={{
-              '&:hover': {
-                bgcolor: 'rgba(255, 255, 255, 0.1)',
-              },
+              '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' },
               pl: 3
             }}
           >
             <ListItemIcon sx={{ color: 'white', minWidth: 40 }}>
-              {item.icon}
+              <DirectionsBusIcon />
             </ListItemIcon>
-            <ListItemText primary={item.text} />
+            <ListItemText primary="Mis Trayectos" />
           </ListItem>
+        )}
+        {menuItems.map((item) => (
+          (userRole !== 'conductor' || item.text !== 'Trayectos') && (
+            <ListItem
+              button
+              key={item.text}
+              onClick={() => {
+                navigate(item.path);
+                if (isMobile) onClose();
+              }}
+              sx={{
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.1)',
+                },
+                pl: 3
+              }}
+            >
+              <ListItemIcon sx={{ color: 'white', minWidth: 40 }}>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItem>
+          )
         ))}
       </List>
     </>

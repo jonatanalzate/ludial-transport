@@ -13,6 +13,7 @@ import CRMList from './components/CRM/CRMList';
 import Configuracion from './components/Configuracion/Configuracion';
 import AnaliticaList from './components/Analitica/AnaliticaList';
 import Monitoreo from './components/Monitoreo/Monitoreo';
+import MisTrayectosMobile from './components/Conductores/MisTrayectosMobile';
 
 function App() {
   return (
@@ -39,7 +40,8 @@ function App() {
           { path: '/analitica', component: <AnaliticaList /> },
           { path: '/usuarios', component: <UsuariosList /> },
           { path: '/configuracion', component: <Configuracion /> },
-          { path: '/monitoreo', component: <Monitoreo /> }
+          { path: '/monitoreo', component: <Monitoreo /> },
+          { path: '/mis-trayectos', component: <MisTrayectosMobile /> }
         ].map(({ path, component }) => (
           <Route
             key={path}

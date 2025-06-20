@@ -13,6 +13,7 @@ import {
 import { api } from '../../services/api';
 
 const TrayectoForm = ({ open, onClose, onSubmit }) => {
+  const userRole = localStorage.getItem('role');
   const [loading, setLoading] = useState(true);
   const [rutas, setRutas] = useState([]);
   const [conductores, setConductores] = useState([]);
@@ -44,6 +45,13 @@ const TrayectoForm = ({ open, onClose, onSubmit }) => {
       fetchData();
     }
   }, [open]);
+
+  if (userRole === 'conductor') {
+    useEffect(() => {
+      if (open) onClose();
+    }, [open, onClose]);
+    return null;
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
