@@ -1,22 +1,24 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
-from ..models.journey import JourneyStatus
+from ..models.journey import EstadoTrayecto
 
 class JourneyBase(BaseModel):
-    vehicle_id: int
-    driver_id: int
-    route_id: int
-    start_time: datetime
-    status: JourneyStatus = JourneyStatus.SCHEDULED
+    ruta_id: int
+    conductor_id: int
+    vehiculo_id: int
+    fecha_salida: Optional[datetime] = None
+    fecha_llegada: Optional[datetime] = None
+    cantidad_pasajeros: Optional[int] = None
+    estado: EstadoTrayecto = EstadoTrayecto.PROGRAMADO
+    duracion_minutos: Optional[int] = None
+    duracion_actual: Optional[int] = None
 
 class JourneyCreate(JourneyBase):
     pass
 
 class Journey(JourneyBase):
     id: int
-    end_time: Optional[datetime]
-    created_by: int
     
     class Config:
-        orm_mode = True 
+        from_attributes = True 
