@@ -27,12 +27,12 @@ import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 
 const menuItems = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-  { text: 'Vehículos', icon: <DirectionsBus />, path: '/vehiculos' },
-  { text: 'Conductores', icon: <Person />, path: '/conductores' },
-  { text: 'Rutas', icon: <Route />, path: '/rutas' },
   { text: 'Trayectos', icon: <Timer />, path: '/trayectos' },
+  { text: 'Vehículos', icon: <DirectionsBus />, path: '/vehiculos' },
+  { text: 'Rutas', icon: <Route />, path: '/rutas' },
   { text: 'CRM', icon: <Business />, path: '/crm' },
   { text: 'Analítica', icon: <Analytics />, path: '/analitica' },
+  { text: 'Monitoreo', icon: <DirectionsBusIcon />, path: '/monitoreo' },
   { text: 'Usuarios', icon: <Group />, path: '/usuarios' },
   { text: 'Configuración', icon: <Settings />, path: '/configuracion' }
 ];
