@@ -2,12 +2,12 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from ..models.user import TipoUsuario
+from ..models.user import RolUsuario
 from ..core.config import settings
 
 # Configuración de seguridad
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 def get_password_hash(password: str) -> str:
     """
@@ -32,7 +32,7 @@ async def get_current_user_type(token: str = Depends(oauth2_scheme)):
     )
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        user_type: str = payload.get("type")
+        user_type: str = payload.get("role")
         if user_type is None:
             raise credentials_exception
         return user_type
@@ -43,7 +43,7 @@ def check_admin_permission(user_type: str = Depends(get_current_user_type)):
     """
     Verifica si el usuario tiene permisos de administrador
     """
-    if user_type != TipoUsuario.ADMIN:
+    if user_type != RolUsuario.ADMINISTRADOR.value:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No tienes permisos para realizar esta acción"

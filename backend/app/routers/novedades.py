@@ -6,7 +6,7 @@ from typing import List
 from ..database import get_db
 from ..models import Novedad, Journey, User, Route
 from ..schemas.novedad import NovedadCreate, NovedadResponse, NovedadStats
-from ..utils.auth import get_current_user
+from .auth import get_current_user
 
 router = APIRouter(prefix="/novedades", tags=["novedades"])
 
