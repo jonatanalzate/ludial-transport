@@ -40,7 +40,7 @@ const ProtectedRoute = ({ children }) => {
     }
 
     // Validar acceso a la ruta según el rol
-    if (!roleAccess[userRole].includes(currentPath)) {
+    if (userRole !== 'administrador' && !roleAccess[userRole].includes(currentPath)) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
                 <div style={{ background: 'white', padding: 32, borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.08)' }}>
