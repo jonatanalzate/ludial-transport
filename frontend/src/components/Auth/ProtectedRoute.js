@@ -10,7 +10,8 @@ const roleAccess = {
         'rutas',
         'crm',
         'usuarios',
-        'configuracion'
+        'configuracion',
+        'mis-trayectos'
     ],
     conductor: ['trayectos', 'mis-trayectos']
 };

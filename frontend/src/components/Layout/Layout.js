@@ -64,9 +64,10 @@ const roleAccess = {
     'analitica',
     'usuarios',
     'configuracion',
-    'monitoreo'
+    'monitoreo',
+    'mis-trayectos'
   ],
-  conductor: ['trayectos']
+  conductor: ['trayectos', 'mis-trayectos']
 };
 
 function Layout({ children }) {
