@@ -10,6 +10,9 @@ class RouteBase(BaseModel):
     nombre: str
     origen: str
     destino: str
+    distancia: Optional[float] = None
+    tiempo_estimado: Optional[int] = None
+    activa: Optional[bool] = True
 
 class RouteCreate(RouteBase):
     pass
@@ -18,6 +21,9 @@ class RouteUpdate(BaseModel):
     nombre: Optional[str] = None
     origen: Optional[str] = None
     destino: Optional[str] = None
+    distancia: Optional[float] = None
+    tiempo_estimado: Optional[int] = None
+    activa: Optional[bool] = None
 
 class RouteResponse(RouteBase):
     id: int
@@ -55,14 +61,12 @@ async def obtener_ruta(ruta_id: int, db: Session = Depends(get_db)):
 
 @router.put("/{ruta_id}", response_model=RouteResponse, 
            dependencies=[Depends(check_role_access(["administrador", "supervisor"]))])
-async def actualizar_ruta(ruta_id: int, ruta: RouteCreate, db: Session = Depends(get_db)):
+async def actualizar_ruta(ruta_id: int, ruta: RouteUpdate, db: Session = Depends(get_db)):
     db_ruta = db.query(Route).filter(Route.id == ruta_id).first()
     if db_ruta is None:
         raise HTTPException(status_code=404, detail="Ruta no encontrada")
-    
-    for key, value in ruta.dict().items():
+    for key, value in ruta.dict(exclude_unset=True).items():
         setattr(db_ruta, key, value)
-    
     db.commit()
     db.refresh(db_ruta)
     return db_ruta
@@ -81,13 +85,8 @@ async def eliminar_ruta(ruta_id: int, db: Session = Depends(get_db)):
 async def crear_rutas_bulk(rutas: RoutesCreateBulk, db: Session = Depends(get_db)):
     db_rutas = []
     for ruta in rutas.rutas:
-        db_ruta = Route(
-            nombre=ruta.nombre,
-            origen=ruta.origen,
-            destino=ruta.destino
-        )
+        db_ruta = Route(**ruta.dict())
         db_rutas.append(db_ruta)
-    
     db.add_all(db_rutas)
     db.commit()
     for ruta in db_rutas:
