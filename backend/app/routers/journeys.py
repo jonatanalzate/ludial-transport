@@ -280,21 +280,41 @@ async def finalizar_trayecto(trayecto_id: int, datos: FinalizarTrayectoRequest, 
 @router.get("/ubicaciones", tags=["Monitoreo"])
 async def obtener_ubicaciones(db: Session = Depends(get_db)):
     try:
-        ubicaciones = db.query(Location).all()
+        # Query con JOIN para obtener información completa
+        ubicaciones_completas = db.query(
+            Location, Journey, Vehicle, User, Route
+        ).join(
+            Journey, Location.conductor_id == Journey.conductor_id
+        ).join(
+            Vehicle, Journey.vehiculo_id == Vehicle.id
+        ).join(
+            User, Journey.conductor_id == User.id
+        ).join(
+            Route, Journey.ruta_id == Route.id
+        ).filter(
+            Journey.estado == EstadoTrayecto.EN_CURSO
+        ).all()
+        
         response_data = [
             {
-                "conductor_id": u.conductor_id,
-                "lat": u.lat,
-                "lng": u.lng,
-                "timestamp": u.timestamp.isoformat() if u.timestamp else None
-            } for u in ubicaciones
+                "conductor_id": u.Location.conductor_id,
+                "lat": u.Location.lat,
+                "lng": u.Location.lng,
+                "timestamp": u.Location.timestamp.isoformat() if u.Location.timestamp else None,
+                "placa_vehiculo": u.Vehicle.placa,
+                "nombre_conductor": u.User.nombre_completo,
+                "nombre_ruta": u.Route.nombre,
+                "vehiculo_id": u.Vehicle.id,
+                "ruta_id": u.Route.id
+            } for u in ubicaciones_completas
         ]
-        logger.info(f"Datos de ubicaciones a enviar (antes de serialización): {response_data}")
+        
+        logger.info(f"Datos de ubicaciones completas a enviar: {len(response_data)} registros")
 
         # Intentar serializar manualmente para depuración
         try:
             json_compatible_data = jsonable_encoder(response_data)
-            logger.info(f"Datos de ubicaciones serializados correctamente: {json_compatible_data}")
+            logger.info(f"Datos de ubicaciones serializados correctamente")
             return json_compatible_data
         except Exception as serial_e:
             logger.error(f"Error durante la serialización de ubicaciones: {str(serial_e)}")
