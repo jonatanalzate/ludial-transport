@@ -1,10 +1,13 @@
 from pydantic import BaseModel
-from ..models.user import UserType
+from typing import Optional
+from ..models.user import RolUsuario
 
 class UserBase(BaseModel):
-    email: str
     username: str
-    user_type: UserType
+    email: str
+    nombre_completo: Optional[str] = None
+    rol: str
+    activo: bool = True
 
 class UserCreate(UserBase):
     password: str
@@ -13,4 +16,4 @@ class User(UserBase):
     id: int
 
     class Config:
-        orm_mode = True 
+        from_attributes = True 
