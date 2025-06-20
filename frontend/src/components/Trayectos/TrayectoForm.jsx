@@ -46,12 +46,11 @@ const TrayectoForm = ({ open, onClose, onSubmit }) => {
     }
   }, [open]);
 
-  if (userRole === 'conductor') {
-    useEffect(() => {
-      if (open) onClose();
-    }, [open, onClose]);
-    return null;
-  }
+  useEffect(() => {
+    if (userRole === 'conductor' && open) onClose();
+  }, [open, onClose, userRole]);
+
+  if (userRole === 'conductor') return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();

@@ -34,6 +34,7 @@ import FlagCircleIcon from '@mui/icons-material/FlagCircle';
 import WarningIcon from '@mui/icons-material/Warning';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import Build from '@mui/icons-material/Build';
 import { api } from '../../services/api';
 
 const tiposNovedades = [
