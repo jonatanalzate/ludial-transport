@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Body
+from fastapi import APIRouter, Depends, HTTPException, Request, Body, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from ..database import get_db
@@ -385,4 +385,56 @@ async def actualizar_ubicacion(
         ubicacion = Location(conductor_id=conductor_id, lat=lat, lng=lng, timestamp=now)
         db.add(ubicacion)
     db.commit()
-    return {"ok": True} 
+    return {"ok": True}
+
+@router.delete("/{trayecto_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def eliminar_trayecto(trayecto_id: int, db: Session = Depends(get_db)):
+    trayecto = db.query(Journey).filter(Journey.id == trayecto_id).first()
+    if not trayecto:
+        raise HTTPException(status_code=404, detail="Trayecto no encontrado")
+    if trayecto.estado != EstadoTrayecto.PROGRAMADO:
+        raise HTTPException(status_code=400, detail="Solo se pueden eliminar trayectos en estado PROGRAMADO")
+    db.delete(trayecto)
+    db.commit()
+    return
+
+@router.put("/{trayecto_id}", response_model=JourneyResponse)
+async def editar_trayecto(trayecto_id: int, datos: JourneyUpdate, db: Session = Depends(get_db)):
+    trayecto = db.query(Journey).filter(Journey.id == trayecto_id).first()
+    if not trayecto:
+        raise HTTPException(status_code=404, detail="Trayecto no encontrado")
+    if trayecto.estado != EstadoTrayecto.PROGRAMADO:
+        raise HTTPException(status_code=400, detail="Solo se pueden editar trayectos en estado PROGRAMADO")
+    for field, value in datos.dict(exclude_unset=True).items():
+        setattr(trayecto, field, value)
+    db.commit()
+    db.refresh(trayecto)
+    return prepare_journey_response(trayecto, db)
+
+@router.post("/bulk", response_model=List[JourneyResponse])
+async def crear_trayectos_bulk(journeys: List[JourneyCreate], db: Session = Depends(get_db)):
+    trayectos_creados = []
+    for journey in journeys:
+        # Validar conductor
+        conductor = db.query(User).filter(User.id == journey.conductor_id).first()
+        if not conductor:
+            continue
+        # Validar vehículo
+        vehiculo = db.query(Vehicle).filter(Vehicle.id == journey.vehiculo_id).first()
+        if not vehiculo:
+            continue
+        # Validar ruta
+        ruta = db.query(Route).filter(Route.id == journey.ruta_id).first()
+        if not ruta:
+            continue
+        new_journey = Journey(
+            conductor_id=journey.conductor_id,
+            vehiculo_id=journey.vehiculo_id,
+            ruta_id=journey.ruta_id,
+            estado=EstadoTrayecto.PROGRAMADO
+        )
+        db.add(new_journey)
+        db.commit()
+        db.refresh(new_journey)
+        trayectos_creados.append(prepare_journey_response(new_journey, db))
+    return trayectos_creados 

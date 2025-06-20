@@ -72,6 +72,9 @@ export const api = {
   },
   getUbicaciones: () => axiosInstance.get('/trayectos/ubicaciones'),
   enviarUbicacion: (data) => axiosInstance.post('/trayectos/ubicacion', data),
+  updateTrayecto: (id, data) => axiosInstance.put(`/trayectos/${id}`, data),
+  deleteTrayecto: (id) => axiosInstance.delete(`/trayectos/${id}`),
+  createTrayectosBulk: (data) => axiosInstance.post('/trayectos/bulk', data),
 
   // Vehículos
   getVehiculos: () => axiosInstance.get('/vehiculos'),

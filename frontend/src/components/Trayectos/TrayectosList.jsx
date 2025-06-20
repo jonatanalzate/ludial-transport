@@ -32,6 +32,7 @@ import {
   ListItemText
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { api } from '../../services/api';
 import TrayectoCard from './TrayectoCard';
 import TrayectoForm from './TrayectoForm';
@@ -49,6 +50,7 @@ import {
   Traffic,
   MoreVert
 } from '@mui/icons-material';
+import TrayectoBulkUpload from './TrayectoBulkUpload';
 
 const TrayectosList = () => {
   const [trayectos, setTrayectos] = useState([]);
@@ -81,6 +83,16 @@ const TrayectosList = () => {
     { tipo: 'Problema de Ruta', icon: <Route />, color: '#2196f3' },
     { tipo: 'Otro', icon: <MoreVert />, color: '#ffb74d' } // Naranja claro
   ];
+
+  const [editMode, setEditMode] = useState(false);
+  const [trayectoToEdit, setTrayectoToEdit] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [trayectoToDelete, setTrayectoToDelete] = useState(null);
+
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+  const [bulkInput, setBulkInput] = useState('');
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkError, setBulkError] = useState('');
 
   const fetchTrayectos = async () => {
     try {
@@ -245,6 +257,46 @@ const TrayectosList = () => {
     }
   };
 
+  const handleEditTrayecto = (trayecto) => {
+    setTrayectoToEdit(trayecto);
+    setEditMode(true);
+    setOpenForm(true);
+  };
+
+  const handleDeleteTrayecto = (trayecto) => {
+    setTrayectoToDelete(trayecto);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteTrayecto = async () => {
+    if (!trayectoToDelete) return;
+    try {
+      await api.deleteTrayecto(trayectoToDelete.id);
+      setDeleteDialogOpen(false);
+      setTrayectoToDelete(null);
+      fetchTrayectos();
+    } catch (error) {
+      alert('Error al eliminar trayecto: ' + (error.response?.data?.detail || 'Error desconocido'));
+    }
+  };
+
+  const handleBulkUpload = async () => {
+    setBulkLoading(true);
+    setBulkError('');
+    try {
+      const data = JSON.parse(bulkInput);
+      if (!Array.isArray(data)) throw new Error('El formato debe ser un array de objetos');
+      await api.createTrayectosBulk(data);
+      setBulkDialogOpen(false);
+      setBulkInput('');
+      fetchTrayectos();
+    } catch (e) {
+      setBulkError(e.message || 'Error al cargar los datos');
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   const trayectosFiltrados = trayectos.filter(trayecto => {
     let cumpleFiltros = true;
 
@@ -272,13 +324,22 @@ const TrayectosList = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4">Trayectos</Typography>
         {userRole !== 'conductor' && (
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setOpenForm(true)}
-          >
-            Nuevo Trayecto
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setOpenForm(true)}
+            >
+              Nuevo Trayecto
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<UploadFileIcon />}
+              onClick={() => setBulkDialogOpen(true)}
+            >
+              Carga Masiva
+            </Button>
+          </Box>
         )}
       </Box>
 
@@ -371,22 +432,38 @@ const TrayectosList = () => {
                   </TableCell>
                   <TableCell>
                     {trayecto.estado.toLowerCase() === 'programado' && (
-                      <Button
-                        variant="contained"
-                        color="success"
-                        startIcon={<PlayArrow />}
-                        onClick={() => handleIniciarTrayecto(trayecto.id)}
-                        sx={{
-                          borderRadius: 3,
-                          fontWeight: 'bold',
-                          textTransform: 'none',
-                          boxShadow: 2,
-                          bgcolor: '#2e7d32',
-                          '&:hover': { bgcolor: '#1b5e20' }
-                        }}
-                      >
-                        Iniciar
-                      </Button>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button
+                          variant="contained"
+                          color="success"
+                          startIcon={<PlayArrow />}
+                          onClick={() => handleIniciarTrayecto(trayecto.id)}
+                          sx={{
+                            borderRadius: 3,
+                            fontWeight: 'bold',
+                            textTransform: 'none',
+                            boxShadow: 2,
+                            bgcolor: '#2e7d32',
+                            '&:hover': { bgcolor: '#1b5e20' }
+                          }}
+                        >
+                          Iniciar
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          onClick={() => handleEditTrayecto(trayecto)}
+                        >
+                          Editar
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          onClick={() => handleDeleteTrayecto(trayecto)}
+                        >
+                          Eliminar
+                        </Button>
+                      </Box>
                     )}
                     {trayecto.estado.toLowerCase() === 'en_curso' && (
                       <Box sx={{ display: 'flex', gap: 1 }}>
@@ -434,16 +511,28 @@ const TrayectosList = () => {
 
       <TrayectoForm
         open={openForm}
-        onClose={() => setOpenForm(false)}
+        onClose={() => {
+          setOpenForm(false);
+          setEditMode(false);
+          setTrayectoToEdit(null);
+        }}
         onSubmit={async (data) => {
           try {
-            await api.createTrayecto(data);
+            if (editMode && trayectoToEdit) {
+              await api.updateTrayecto(trayectoToEdit.id, data);
+            } else {
+              await api.createTrayecto(data);
+            }
             fetchTrayectos();
             setOpenForm(false);
+            setEditMode(false);
+            setTrayectoToEdit(null);
           } catch (error) {
-            // console.error('Error al crear trayecto:', error);
+            alert('Error al guardar trayecto: ' + (error.response?.data?.detail || 'Error desconocido'));
           }
         }}
+        editMode={editMode}
+        initialData={trayectoToEdit}
       />
 
       <Dialog open={finalizarDialogOpen} onClose={() => setFinalizarDialogOpen(false)}>
@@ -550,6 +639,23 @@ const TrayectosList = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>¿Eliminar trayecto programado?</DialogTitle>
+        <DialogContent>
+          <Typography>¿Estás seguro de que deseas eliminar este trayecto? Esta acción no se puede deshacer.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancelar</Button>
+          <Button onClick={confirmDeleteTrayecto} color="error" variant="contained">Eliminar</Button>
+        </DialogActions>
+      </Dialog>
+
+      <TrayectoBulkUpload
+        open={bulkDialogOpen}
+        onClose={() => setBulkDialogOpen(false)}
+        onUploadSuccess={fetchTrayectos}
+      />
 
       {userRole === 'conductor' && (
         <Snackbar open={geoStatus !== 'active'} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>

@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { api } from '../../services/api';
 
-const TrayectoForm = ({ open, onClose, onSubmit }) => {
+const TrayectoForm = ({ open, onClose, onSubmit, editMode = false, initialData = null }) => {
   const userRole = localStorage.getItem('role');
   const [loading, setLoading] = useState(true);
   const [rutas, setRutas] = useState([]);
@@ -50,6 +50,18 @@ const TrayectoForm = ({ open, onClose, onSubmit }) => {
     if (userRole === 'conductor' && open) onClose();
   }, [open, onClose, userRole]);
 
+  useEffect(() => {
+    if (editMode && initialData) {
+      setFormData({
+        ruta_id: initialData.ruta_id,
+        conductor_id: initialData.conductor_id,
+        vehiculo_id: initialData.vehiculo_id,
+      });
+    } else {
+      setFormData({ ruta_id: '', conductor_id: '', vehiculo_id: '' });
+    }
+  }, [editMode, initialData, open]);
+
   if (userRole === 'conductor') return null;
 
   const handleSubmit = (e) => {
@@ -64,7 +76,7 @@ const TrayectoForm = ({ open, onClose, onSubmit }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <form onSubmit={handleSubmit}>
-        <DialogTitle>Nuevo Trayecto</DialogTitle>
+        <DialogTitle>{editMode ? 'Editar Trayecto' : 'Nuevo Trayecto'}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}>
@@ -120,7 +132,7 @@ const TrayectoForm = ({ open, onClose, onSubmit }) => {
         <DialogActions>
           <Button onClick={onClose}>Cancelar</Button>
           <Button type="submit" variant="contained">
-            Crear
+            {editMode ? 'Guardar Cambios' : 'Crear'}
           </Button>
         </DialogActions>
       </form>
