@@ -20,6 +20,8 @@ import {
 import { Edit, Delete, Add } from '@mui/icons-material';
 import { api } from '../../services/api';
 import RutaBulkUpload from './RutaBulkUpload';
+import Switch from '@mui/material/Switch';
+import Chip from '@mui/material/Chip';
 
 const RutasList = () => {
   const [rutas, setRutas] = useState([]);
@@ -28,7 +30,10 @@ const RutasList = () => {
   const [formData, setFormData] = useState({
     nombre: '',
     origen: '',
-    destino: ''
+    destino: '',
+    distancia: '',
+    tiempo_estimado: '',
+    activa: true
   });
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
 
@@ -51,14 +56,20 @@ const RutasList = () => {
       setFormData({
         nombre: ruta.nombre,
         origen: ruta.origen,
-        destino: ruta.destino
+        destino: ruta.destino,
+        distancia: ruta.distancia || '',
+        tiempo_estimado: ruta.tiempo_estimado || '',
+        activa: ruta.activa !== undefined ? ruta.activa : true
       });
     } else {
       setEditingRuta(null);
       setFormData({
         nombre: '',
         origen: '',
-        destino: ''
+        destino: '',
+        distancia: '',
+        tiempo_estimado: '',
+        activa: true
       });
     }
     setOpen(true);
@@ -106,6 +117,15 @@ const RutasList = () => {
     }
   };
 
+  const handleToggleActiva = async (ruta) => {
+    try {
+      await api.updateRuta(ruta.id, { activa: !ruta.activa });
+      loadRutas();
+    } catch (error) {
+      alert('Error al cambiar el estado de la ruta');
+    }
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
@@ -134,6 +154,9 @@ const RutasList = () => {
               <TableCell>Nombre</TableCell>
               <TableCell>Origen</TableCell>
               <TableCell>Destino</TableCell>
+              <TableCell>Distancia (km)</TableCell>
+              <TableCell>Tiempo Estimado (min)</TableCell>
+              <TableCell>Estado</TableCell>
               <TableCell align="right">Acciones</TableCell>
             </TableRow>
           </TableHead>
@@ -143,6 +166,21 @@ const RutasList = () => {
                 <TableCell>{ruta.nombre}</TableCell>
                 <TableCell>{ruta.origen}</TableCell>
                 <TableCell>{ruta.destino}</TableCell>
+                <TableCell>{ruta.distancia ?? '-'}</TableCell>
+                <TableCell>{ruta.tiempo_estimado ?? '-'}</TableCell>
+                <TableCell>
+                  <Chip
+                    label={ruta.activa ? 'Activa' : 'Inactiva'}
+                    color={ruta.activa ? 'success' : 'default'}
+                    size="small"
+                    sx={{ mr: 1 }}
+                  />
+                  <Switch
+                    checked={!!ruta.activa}
+                    onChange={() => handleToggleActiva(ruta)}
+                    color="primary"
+                  />
+                </TableCell>
                 <TableCell align="right">
                   <IconButton onClick={() => handleOpen(ruta)}>
                     <Edit />
@@ -184,6 +222,32 @@ const RutasList = () => {
               value={formData.destino}
               onChange={(e) => setFormData({ ...formData, destino: e.target.value })}
             />
+            <TextField
+              fullWidth
+              label="Distancia (km)"
+              margin="normal"
+              type="number"
+              value={formData.distancia}
+              onChange={(e) => setFormData({ ...formData, distancia: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Tiempo Estimado (min)"
+              margin="normal"
+              type="number"
+              value={formData.tiempo_estimado}
+              onChange={(e) => setFormData({ ...formData, tiempo_estimado: e.target.value })}
+            />
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+              <Switch
+                checked={!!formData.activa}
+                onChange={e => setFormData({ ...formData, activa: e.target.checked })}
+                color="primary"
+              />
+              <Typography variant="body2" sx={{ ml: 1 }}>
+                {formData.activa ? 'Ruta activa' : 'Ruta inactiva'}
+              </Typography>
+            </Box>
           </Box>
         </DialogContent>
         <DialogActions>

@@ -50,9 +50,9 @@ const RutaBulkUpload = ({ open, onClose, onUpload }) => {
       header.trim().replace(/["']/g, '')
     );
 
-    const expectedHeaders = ['nombre', 'origen', 'destino'];
+    const expectedHeaders = ['nombre', 'origen', 'destino', 'distancia', 'tiempo_estimado', 'activa'];
     if (!expectedHeaders.every(header => headers.includes(header))) {
-      setError('El CSV debe tener las columnas: nombre, origen, destino');
+      setError('El CSV debe tener las columnas: nombre, origen, destino, distancia, tiempo_estimado, activa');
       return;
     }
 
@@ -64,7 +64,10 @@ const RutaBulkUpload = ({ open, onClose, onUpload }) => {
         return {
           nombre: values[headers.indexOf('nombre')],
           origen: values[headers.indexOf('origen')],
-          destino: values[headers.indexOf('destino')]
+          destino: values[headers.indexOf('destino')],
+          distancia: parseFloat(values[headers.indexOf('distancia')]) || null,
+          tiempo_estimado: parseInt(values[headers.indexOf('tiempo_estimado')]) || null,
+          activa: values[headers.indexOf('activa')] === 'false' ? false : true
         };
       });
 
@@ -95,11 +98,13 @@ const RutaBulkUpload = ({ open, onClose, onUpload }) => {
     const isValid = rutas.every(ruta => 
       ruta.nombre && 
       ruta.origen && 
-      ruta.destino
+      ruta.destino &&
+      (typeof ruta.distancia === 'number' || ruta.distancia === null) &&
+      (typeof ruta.tiempo_estimado === 'number' || ruta.tiempo_estimado === null)
     );
 
     if (!isValid) {
-      setError('Todas las rutas deben tener nombre, origen y destino');
+      setError('Todas las rutas deben tener nombre, origen, destino, distancia (número), tiempo_estimado (número)');
       return false;
     }
 
@@ -112,7 +117,7 @@ const RutaBulkUpload = ({ open, onClose, onUpload }) => {
     let type;
 
     if (format === 'csv') {
-      content = 'nombre,origen,destino\nRuta Norte,Ciudad A,Ciudad B\nRuta Sur,Ciudad C,Ciudad D';
+      content = 'nombre,origen,destino,distancia,tiempo_estimado,activa\nRuta Norte,Ciudad A,Ciudad B,10.5,30,true\nRuta Sur,Ciudad C,Ciudad D,15.2,45,false';
       filename = 'plantilla_rutas.csv';
       type = 'text/csv';
     } else {
@@ -120,12 +125,18 @@ const RutaBulkUpload = ({ open, onClose, onUpload }) => {
         {
           "nombre": "Ruta Norte",
           "origen": "Ciudad A",
-          "destino": "Ciudad B"
+          "destino": "Ciudad B",
+          "distancia": 10.5,
+          "tiempo_estimado": 30,
+          "activa": true
         },
         {
           "nombre": "Ruta Sur",
           "origen": "Ciudad C",
-          "destino": "Ciudad D"
+          "destino": "Ciudad D",
+          "distancia": 15.2,
+          "tiempo_estimado": 45,
+          "activa": false
         }
       ], null, 2);
       filename = 'plantilla_rutas.json';
