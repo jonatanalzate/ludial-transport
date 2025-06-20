@@ -293,26 +293,24 @@ const TrayectosList = () => {
                   </TableCell>
                   <TableCell>
                     {trayecto.estado.toLowerCase() === 'programado' && (
-                      (userRole === 'conductor' ? trayecto.conductor_id === userId : true) && (
-                        <Button
-                          variant="contained"
-                          color="success"
-                          startIcon={<PlayArrow />}
-                          onClick={() => handleIniciarTrayecto(trayecto.id)}
-                          sx={{
-                            borderRadius: 3,
-                            fontWeight: 'bold',
-                            textTransform: 'none',
-                            boxShadow: 2,
-                            bgcolor: '#2e7d32',
-                            '&:hover': { bgcolor: '#1b5e20' }
-                          }}
-                        >
-                          Iniciar
-                        </Button>
-                      )
+                      <Button
+                        variant="contained"
+                        color="success"
+                        startIcon={<PlayArrow />}
+                        onClick={() => handleIniciarTrayecto(trayecto.id)}
+                        sx={{
+                          borderRadius: 3,
+                          fontWeight: 'bold',
+                          textTransform: 'none',
+                          boxShadow: 2,
+                          bgcolor: '#2e7d32',
+                          '&:hover': { bgcolor: '#1b5e20' }
+                        }}
+                      >
+                        Iniciar
+                      </Button>
                     )}
-                    {trayecto.estado.toLowerCase() === 'en_curso' && userRole !== 'conductor' && (
+                    {trayecto.estado.toLowerCase() === 'en_curso' && (
                       <Button
                         variant="contained"
                         color="primary"

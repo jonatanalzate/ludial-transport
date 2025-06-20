@@ -239,6 +239,28 @@ async def iniciar_trayecto(trayecto_id: int, db: Session = Depends(get_db)):
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/{trayecto_id}/detener", response_model=JourneyResponse)
+async def detener_trayecto(trayecto_id: int, db: Session = Depends(get_db)):
+    try:
+        trayecto = db.query(Journey).filter(Journey.id == trayecto_id).first()
+        if not trayecto:
+            raise HTTPException(status_code=404, detail="Trayecto no encontrado")
+        
+        if trayecto.estado != EstadoTrayecto.EN_CURSO:
+            raise HTTPException(status_code=400, detail="El trayecto no está en estado EN_CURSO")
+        
+        trayecto.estado = EstadoTrayecto.CANCELADO
+        trayecto.fecha_llegada = datetime.now(timezone.utc)
+        db.commit()
+        db.refresh(trayecto)
+        return prepare_journey_response(trayecto, db)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deteniendo trayecto {trayecto_id}: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/{trayecto_id}/finalizar", response_model=JourneyResponse)
 async def finalizar_trayecto(trayecto_id: int, datos: FinalizarTrayectoRequest, db: Session = Depends(get_db)):
     try:

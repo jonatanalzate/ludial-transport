@@ -64,6 +64,7 @@ export const api = {
   getTrayectos: () => axiosInstance.get('/trayectos'),
   createTrayecto: (data) => axiosInstance.post('/trayectos', data),
   iniciarTrayecto: (id) => axiosInstance.post(`/trayectos/${id}/iniciar`),
+  detenerTrayecto: (id) => axiosInstance.post(`/trayectos/${id}/detener`),
   finalizarTrayecto: (id, cantidad_pasajeros) => {
     return axiosInstance.post(`/trayectos/${id}/finalizar`, { 
       cantidad_pasajeros: parseInt(cantidad_pasajeros) 
