@@ -28,6 +28,7 @@ class Journey(Base):
     ruta = relationship("Route", back_populates="trayectos")
     conductor = relationship("User")
     vehiculo = relationship("Vehicle", back_populates="trayectos")
+    novedades = relationship("Novedad", back_populates="trayecto")
 
 class Location(Base):
     __tablename__ = "ubicaciones"

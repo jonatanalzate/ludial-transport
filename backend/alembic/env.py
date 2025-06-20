@@ -29,15 +29,17 @@ from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.models.route import Route
 from app.models.journey import Journey
+from app.models.novedad import Novedad
 from app.database import Base
 
 target_metadata = Base.metadata
 
 # Obtener la URL de la base de datos del entorno
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/dbname")
 if DATABASE_URL is not None and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
+if DATABASE_URL:
+    config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

@@ -3,7 +3,7 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     # Configuración de la base de datos
-    DATABASE_URL: str = "sqlite:///./transporte.db"
+    DATABASE_URL: str = "postgresql://user:password@localhost/dbname"  # Cambiar en producción
     
     # Configuración de seguridad
     SECRET_KEY: str = "tu_clave_secreta_aqui"  # Cambiar en producción

@@ -18,12 +18,21 @@ import {
 import {
   DirectionsBus,
   Person,
-  Route
+  Route,
+  Warning
 } from '@mui/icons-material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import TrayectoProgress from './TrayectoProgress';
 import { api } from '../../services/api';
 import { format } from 'date-fns';
+
+const NOVEDAD_COLORS = {
+  'Accidente': '#f44336',
+  'Avería Mecánica': '#ff9800',
+  'Tráfico': '#ffc107',
+  'Problema de Ruta': '#2196f3',
+  'Otro': '#ffb74d'
+};
 
 const StatCard = ({ icon, title, stats, color, loading }) => {
   const theme = useTheme();
@@ -82,6 +91,7 @@ const Dashboard = () => {
   const [conductoresModalOpen, setConductoresModalOpen] = useState(false);
   const [rutasModalOpen, setRutasModalOpen] = useState(false);
   const [pasajerosHoy, setPasajerosHoy] = useState(0);
+  const [novedadesStats, setNovedadesStats] = useState({ loading: true, data: { total: 0, hoy: 0, por_tipo: {} } });
   const theme = useTheme();
 
   useEffect(() => {
@@ -139,6 +149,10 @@ const Dashboard = () => {
           .filter(t => t.fecha_salida && format(new Date(t.fecha_salida), 'yyyy-MM-dd') === today)
           .reduce((acc, t) => acc + (t.cantidad_pasajeros || 0), 0);
         setPasajerosHoy(pasajerosHoy);
+
+        // Cargar KPIs de novedades
+        const novedadesRes = await api.getNovedadesStats();
+        setNovedadesStats({ loading: false, data: novedadesRes.data });
       } catch (error) {
         console.error('Error al cargar datos:', error);
       }
@@ -224,6 +238,56 @@ const Dashboard = () => {
           </Typography>
         </Paper>
       </Box>
+
+      {/* KPIs de Novedades */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={4} lg={3}>
+          <Paper sx={{ p: 2, borderRadius: 3, background: 'linear-gradient(90deg, #fff3e0 0%, #ffe0b2 100%)', boxShadow: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Warning sx={{ color: '#ff9800', fontSize: 40 }} />
+            <Box>
+              <Typography variant="subtitle2" color="#ff9800" sx={{ fontWeight: 700, letterSpacing: 1 }}>
+                NOVEDADES HOY
+              </Typography>
+              {novedadesStats.loading ? <CircularProgress size={20} /> : (
+                <Typography variant="h4" color="#ff9800" sx={{ fontWeight: 900, mt: 1 }}>
+                  {novedadesStats.data.hoy}
+                </Typography>
+              )}
+            </Box>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={4} lg={3}>
+          <Paper sx={{ p: 2, borderRadius: 3, background: 'linear-gradient(90deg, #ffeaea 0%, #ffcdd2 100%)', boxShadow: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Warning sx={{ color: '#f44336', fontSize: 40 }} />
+            <Box>
+              <Typography variant="subtitle2" color="#f44336" sx={{ fontWeight: 700, letterSpacing: 1 }}>
+                TOTAL NOVEDADES
+              </Typography>
+              {novedadesStats.loading ? <CircularProgress size={20} /> : (
+                <Typography variant="h4" color="#f44336" sx={{ fontWeight: 900, mt: 1 }}>
+                  {novedadesStats.data.total}
+                </Typography>
+              )}
+            </Box>
+          </Paper>
+        </Grid>
+        {/* Novedades por tipo */}
+        {Object.entries(novedadesStats.data.por_tipo || {}).map(([tipo, cantidad]) => (
+          <Grid item xs={12} md={4} lg={3} key={tipo}>
+            <Paper sx={{ p: 2, borderRadius: 3, background: NOVEDAD_COLORS[tipo] + '22', boxShadow: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Warning sx={{ color: NOVEDAD_COLORS[tipo], fontSize: 40 }} />
+              <Box>
+                <Typography variant="subtitle2" color={NOVEDAD_COLORS[tipo]} sx={{ fontWeight: 700, letterSpacing: 1 }}>
+                  {tipo.toUpperCase()}
+                </Typography>
+                <Typography variant="h4" color={NOVEDAD_COLORS[tipo]} sx={{ fontWeight: 900, mt: 1 }}>
+                  {cantidad}
+                </Typography>
+              </Box>
+            </Paper>
+          </Grid>
+        ))}
+      </Grid>
 
       {/* Tarjetas de módulos clickables y animadas */}
       <Grid container spacing={3} sx={{ mt: 3 }}>

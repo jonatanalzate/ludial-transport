@@ -26,13 +26,29 @@ import {
   Tooltip,
   IconButton,
   Alert,
-  Snackbar
+  Snackbar,
+  Menu,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { api } from '../../services/api';
 import TrayectoCard from './TrayectoCard';
 import TrayectoForm from './TrayectoForm';
-import { DirectionsBus, Person, Route, PlayArrow, CheckCircle, FlagCircle } from '@mui/icons-material';
+import { 
+  DirectionsBus, 
+  Person, 
+  Route, 
+  PlayArrow, 
+  CheckCircle, 
+  FlagCircle,
+  Warning,
+  Report,
+  Build,
+  LocalHospital,
+  Traffic,
+  MoreVert
+} from '@mui/icons-material';
 
 const TrayectosList = () => {
   const [trayectos, setTrayectos] = useState([]);
@@ -49,6 +65,22 @@ const TrayectosList = () => {
   const [geoStatus, setGeoStatus] = useState('pending'); // 'pending', 'active', 'denied', 'error'
   const [geoError, setGeoError] = useState('');
   const [geoWatcher, setGeoWatcher] = useState(null);
+  
+  // Estados para novedades
+  const [novedadMenuAnchor, setNovedadMenuAnchor] = useState(null);
+  const [selectedTrayectoForNovedad, setSelectedTrayectoForNovedad] = useState(null);
+  const [novedadDialogOpen, setNovedadDialogOpen] = useState(false);
+  const [novedadTipo, setNovedadTipo] = useState('');
+  const [novedadNotas, setNovedadNotas] = useState('');
+
+  // Tipos de novedades
+  const tiposNovedades = [
+    { tipo: 'Accidente', icon: <LocalHospital />, color: '#f44336' },
+    { tipo: 'Avería Mecánica', icon: <Build />, color: '#ff9800' },
+    { tipo: 'Tráfico', icon: <Traffic />, color: '#ffc107' },
+    { tipo: 'Problema de Ruta', icon: <Route />, color: '#2196f3' },
+    { tipo: 'Otro', icon: <MoreVert />, color: '#ffb74d' } // Naranja claro
+  ];
 
   const fetchTrayectos = async () => {
     try {
@@ -166,6 +198,48 @@ const TrayectosList = () => {
     } catch (error) {
       // console.error('Error al finalizar trayecto:', error);
       alert('Error al finalizar el trayecto: ' + (error.response?.data?.detail || 'Error desconocido'));
+    }
+  };
+
+  // Funciones para manejar novedades
+  const handleNovedadClick = (event, trayecto) => {
+    setNovedadMenuAnchor(event.currentTarget);
+    setSelectedTrayectoForNovedad(trayecto);
+  };
+
+  const handleNovedadMenuClose = () => {
+    setNovedadMenuAnchor(null);
+    setSelectedTrayectoForNovedad(null);
+  };
+
+  const handleNovedadTipoSelect = (tipo) => {
+    setNovedadTipo(tipo);
+    setNovedadMenuAnchor(null);
+    setNovedadDialogOpen(true);
+  };
+
+  const handleNovedadSubmit = async () => {
+    if (!novedadTipo) {
+      alert('Por favor seleccione un tipo de novedad');
+      return;
+    }
+
+    try {
+      await api.getNovedades({
+        trayecto_id: selectedTrayectoForNovedad.id,
+        tipo: novedadTipo,
+        notas: novedadNotas,
+        conductor_id: userId
+      });
+      setNovedadDialogOpen(false);
+      setNovedadTipo('');
+      setNovedadNotas('');
+      setSelectedTrayectoForNovedad(null);
+      alert('Novedad reportada exitosamente');
+      fetchTrayectos();
+    } catch (error) {
+      console.error('Error al reportar novedad:', error);
+      alert('Error al reportar la novedad: ' + (error.response?.data?.detail || 'Error desconocido'));
     }
   };
 
@@ -311,22 +385,40 @@ const TrayectosList = () => {
                       </Button>
                     )}
                     {trayecto.estado.toLowerCase() === 'en_curso' && (
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<FlagCircle />}
-                        onClick={() => handleFinalizarClick(trayecto)}
-                        sx={{
-                          borderRadius: 3,
-                          fontWeight: 'bold',
-                          textTransform: 'none',
-                          boxShadow: 2,
-                          bgcolor: '#1976d2',
-                          '&:hover': { bgcolor: '#115293' }
-                        }}
-                      >
-                        Finalizar
-                      </Button>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          startIcon={<FlagCircle />}
+                          onClick={() => handleFinalizarClick(trayecto)}
+                          sx={{
+                            borderRadius: 3,
+                            fontWeight: 'bold',
+                            textTransform: 'none',
+                            boxShadow: 2,
+                            bgcolor: '#1976d2',
+                            '&:hover': { bgcolor: '#115293' }
+                          }}
+                        >
+                          Finalizar
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="warning"
+                          startIcon={<Warning />}
+                          onClick={(event) => handleNovedadClick(event, trayecto)}
+                          sx={{
+                            borderRadius: 3,
+                            fontWeight: 'bold',
+                            textTransform: 'none',
+                            boxShadow: 2,
+                            bgcolor: '#ff9800',
+                            '&:hover': { bgcolor: '#f57c00' }
+                          }}
+                        >
+                          Novedad
+                        </Button>
+                      </Box>
                     )}
                   </TableCell>
                 </TableRow>
@@ -367,6 +459,90 @@ const TrayectosList = () => {
           <Button onClick={() => setFinalizarDialogOpen(false)}>Cancelar</Button>
           <Button onClick={handleFinalizarConfirm} variant="contained" color="primary">
             Finalizar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Menú desplegable de novedades */}
+      <Menu
+        anchorEl={novedadMenuAnchor}
+        open={Boolean(novedadMenuAnchor)}
+        onClose={handleNovedadMenuClose}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            boxShadow: 3,
+            minWidth: 200
+          }
+        }}
+      >
+        {tiposNovedades.map((novedad) => (
+          <MenuItem
+            key={novedad.tipo}
+            onClick={() => handleNovedadTipoSelect(novedad.tipo)}
+            sx={{
+              '&:hover': {
+                bgcolor: novedad.tipo === 'Otro' ? '#fff3e0' : '#f5f5f5'
+              }
+            }}
+          >
+            <ListItemIcon>
+              <Box sx={{ color: novedad.color }}>
+                {novedad.icon}
+              </Box>
+            </ListItemIcon>
+            <ListItemText 
+              primary={novedad.tipo}
+              primaryTypographyProps={{
+                sx: {
+                  color: novedad.tipo === 'Otro' ? '#ff9800' : 'inherit',
+                  fontWeight: novedad.tipo === 'Otro' ? 600 : 400
+                }
+              }}
+            />
+          </MenuItem>
+        ))}
+      </Menu>
+
+      {/* Diálogo para ingresar notas de novedad */}
+      <Dialog open={novedadDialogOpen} onClose={() => setNovedadDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 1,
+          color: novedadTipo === 'Otro' ? '#ff9800' : '#f44336'
+        }}>
+          <Warning />
+          Reportar Novedad: {novedadTipo}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Notas adicionales (opcional)"
+            type="text"
+            fullWidth
+            multiline
+            rows={4}
+            value={novedadNotas}
+            onChange={(e) => setNovedadNotas(e.target.value)}
+            placeholder="Describe los detalles de la novedad..."
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setNovedadDialogOpen(false)}>Cancelar</Button>
+          <Button 
+            onClick={handleNovedadSubmit} 
+            variant="contained" 
+            sx={{
+              bgcolor: novedadTipo === 'Otro' ? '#ff9800' : '#f44336',
+              '&:hover': {
+                bgcolor: novedadTipo === 'Otro' ? '#f57c00' : '#d32f2f'
+              }
+            }}
+          >
+            Reportar
           </Button>
         </DialogActions>
       </Dialog>

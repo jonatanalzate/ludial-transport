@@ -94,6 +94,7 @@ export const api = {
   deleteUsuario: (id) => axiosInstance.delete(`/usuarios/${id}`),
   createUsuariosBulk: (data) => axiosInstance.post('/usuarios/bulk', data),
 
-  // Función dummy para getNovedades, si es que alguna parte del frontend la sigue esperando.
-  getNovedades: () => Promise.resolve({ data: [] }),
+  // Novedades
+  getNovedades: () => axiosInstance.get('/novedades'),
+  getNovedadesStats: () => axiosInstance.get('/novedades/stats'),
 }; 

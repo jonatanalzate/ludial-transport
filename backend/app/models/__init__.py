@@ -2,6 +2,7 @@ from .user import User, RolUsuario
 from .vehicle import Vehicle
 from .route import Route
 from .journey import Journey, EstadoTrayecto
+from .novedad import Novedad
 
 __all__ = [
     "User",
@@ -9,5 +10,6 @@ __all__ = [
     "Vehicle",
     "Route",
     "Journey",
-    "EstadoTrayecto"
+    "EstadoTrayecto",
+    "Novedad"
 ] 

@@ -33,6 +33,7 @@ class User(Base):
     activo = Column(Boolean, default=True)
 
     trayectos = relationship("Journey", back_populates="conductor")
+    novedades_reportadas = relationship("Novedad", back_populates="conductor")
 
     @property
     def role_enum(self):

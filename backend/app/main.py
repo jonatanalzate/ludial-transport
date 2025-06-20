@@ -16,6 +16,7 @@ from .models.user import User
 from .models.vehicle import Vehicle
 from .models.route import Route
 from .models.journey import Journey, EstadoTrayecto
+from .models.novedad import Novedad
 
 # Luego importar la base de datos
 from .database import engine, Base
@@ -26,7 +27,8 @@ from .routers import (
     users_router,
     vehicles_router, 
     routes_router, 
-    journeys_router
+    journeys_router,
+    novedades_router
 )
 
 class NoRedirectMiddleware(BaseHTTPMiddleware):
@@ -69,7 +71,7 @@ app.add_middleware(
 Base.metadata.create_all(bind=engine)
 
 # Incluir los routers
-for router in [auth_router, users_router, vehicles_router, routes_router, journeys_router]:
+for router in [auth_router, users_router, vehicles_router, routes_router, journeys_router, novedades_router]:
     app.include_router(router)
 
 @app.get("/")
