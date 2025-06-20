@@ -227,68 +227,75 @@ const Dashboard = () => {
         </DialogContent>
       </Dialog>
 
-      {/* KPI PASAJEROS HOY */}
-      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Paper sx={{ p: 3, borderRadius: 3, minWidth: 260, background: 'linear-gradient(90deg, #e3ffe6 0%, #b2f7c1 100%)', boxShadow: theme.shadows[4], display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Typography variant="subtitle2" color="success.main" sx={{ fontWeight: 700, letterSpacing: 1 }}>
-            PASAJEROS HOY
-          </Typography>
-          <Typography variant="h3" color="success.dark" sx={{ fontWeight: 900, mt: 1 }}>
-            {pasajerosHoy}
-          </Typography>
-        </Paper>
-      </Box>
-
-      {/* KPIs de Novedades */}
+      {/* KPI Row: Pasajeros y Novedades */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={4} lg={3}>
-          <Paper sx={{ p: 2, borderRadius: 3, background: 'linear-gradient(90deg, #fff3e0 0%, #ffe0b2 100%)', boxShadow: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Warning sx={{ color: '#ff9800', fontSize: 40 }} />
-            <Box>
-              <Typography variant="subtitle2" color="#ff9800" sx={{ fontWeight: 700, letterSpacing: 1 }}>
-                NOVEDADES HOY
-              </Typography>
-              {novedadesStats.loading ? <CircularProgress size={20} /> : (
-                <Typography variant="h4" color="#ff9800" sx={{ fontWeight: 900, mt: 1 }}>
-                  {novedadesStats.data.hoy}
-                </Typography>
-              )}
-            </Box>
+        {/* KPI PASAJEROS HOY */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Paper sx={{ p: 3, borderRadius: 3, height: '100%', background: 'linear-gradient(90deg, #e3ffe6 0%, #b2f7c1 100%)', boxShadow: theme.shadows[4], display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography variant="subtitle2" color="success.main" sx={{ fontWeight: 700, letterSpacing: 1 }}>
+              PASAJEROS HOY
+            </Typography>
+            <Typography variant="h3" color="success.dark" sx={{ fontWeight: 900, mt: 1 }}>
+              {pasajerosHoy}
+            </Typography>
           </Paper>
         </Grid>
-        <Grid item xs={12} md={4} lg={3}>
-          <Paper sx={{ p: 2, borderRadius: 3, background: 'linear-gradient(90deg, #ffeaea 0%, #ffcdd2 100%)', boxShadow: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Warning sx={{ color: '#f44336', fontSize: 40 }} />
-            <Box>
-              <Typography variant="subtitle2" color="#f44336" sx={{ fontWeight: 700, letterSpacing: 1 }}>
-                TOTAL NOVEDADES
+
+        {/* KPI Novedades Hoy */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Paper sx={{ p: 3, borderRadius: 3, height: '100%', background: 'linear-gradient(90deg, #fff3e0 0%, #ffe0b2 100%)', boxShadow: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography variant="subtitle2" color="#ff9800" sx={{ fontWeight: 700, letterSpacing: 1 }}>
+              NOVEDADES HOY
+            </Typography>
+            {novedadesStats.loading ? <CircularProgress size={20} /> : (
+              <Typography variant="h4" color="#ff9800" sx={{ fontWeight: 900, mt: 1 }}>
+                {novedadesStats.data.hoy}
               </Typography>
-              {novedadesStats.loading ? <CircularProgress size={20} /> : (
-                <Typography variant="h4" color="#f44336" sx={{ fontWeight: 900, mt: 1 }}>
-                  {novedadesStats.data.total}
-                </Typography>
-              )}
-            </Box>
+            )}
           </Paper>
         </Grid>
-        {/* Novedades por tipo */}
-        {Object.entries(novedadesStats.data.por_tipo || {}).map(([tipo, cantidad]) => (
-          <Grid item xs={12} md={4} lg={3} key={tipo}>
-            <Paper sx={{ p: 2, borderRadius: 3, background: NOVEDAD_COLORS[tipo] + '22', boxShadow: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Warning sx={{ color: NOVEDAD_COLORS[tipo], fontSize: 40 }} />
-              <Box>
-                <Typography variant="subtitle2" color={NOVEDAD_COLORS[tipo]} sx={{ fontWeight: 700, letterSpacing: 1 }}>
-                  {tipo.toUpperCase()}
-                </Typography>
-                <Typography variant="h4" color={NOVEDAD_COLORS[tipo]} sx={{ fontWeight: 900, mt: 1 }}>
-                  {cantidad}
-                </Typography>
-              </Box>
-            </Paper>
-          </Grid>
-        ))}
+
+        {/* KPI Total Novedades */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Paper sx={{ p: 3, borderRadius: 3, height: '100%', background: 'linear-gradient(90deg, #ffeaea 0%, #ffcdd2 100%)', boxShadow: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography variant="subtitle2" color="#f44336" sx={{ fontWeight: 700, letterSpacing: 1 }}>
+              TOTAL NOVEDADES
+            </Typography>
+            {novedadesStats.loading ? <CircularProgress size={20} /> : (
+              <Typography variant="h4" color="#f44336" sx={{ fontWeight: 900, mt: 1 }}>
+                {novedadesStats.data.total}
+              </Typography>
+            )}
+          </Paper>
+        </Grid>
       </Grid>
 
+      {/* Novedades por tipo */}
+      <Typography variant="h6" sx={{ mb: 2, mt: 4, color: 'text.secondary' }}>Desglose de Novedades</Typography>
+      <Grid container spacing={3}>
+        {Object.entries(novedadesStats.data.por_tipo || {}).length > 0 ? (
+          Object.entries(novedadesStats.data.por_tipo).map(([tipo, cantidad]) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={tipo}>
+              <Paper sx={{ p: 2, borderRadius: 3, background: NOVEDAD_COLORS[tipo] + '22', boxShadow: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Warning sx={{ color: NOVEDAD_COLORS[tipo], fontSize: 32 }} />
+                <Box>
+                  <Typography variant="subtitle2" color={NOVEDAD_COLORS[tipo]} sx={{ fontWeight: 700 }}>
+                    {tipo.toUpperCase()}
+                  </Typography>
+                  <Typography variant="h5" color={NOVEDAD_COLORS[tipo]} sx={{ fontWeight: 800 }}>
+                    {cantidad}
+                  </Typography>
+                </Box>
+              </Paper>
+            </Grid>
+          ))
+        ) : (
+          <Grid item xs={12}>
+            <Typography sx={{ color: 'text.secondary', fontStyle: 'italic' }}>No hay novedades por tipo para mostrar.</Typography>
+          </Grid>
+        )}
+      </Grid>
+      
       {/* Tarjetas de módulos clickables y animadas */}
       <Grid container spacing={3} sx={{ mt: 3 }}>
         <Grid item xs={12} md={6} lg={4}>

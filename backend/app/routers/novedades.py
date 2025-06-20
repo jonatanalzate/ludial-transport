@@ -99,8 +99,8 @@ def obtener_estadisticas_novedades(
     current_user: User = Depends(get_current_user)
 ):
     """Obtener estadísticas de novedades"""
-    # Solo administradores y supervisores pueden ver estadísticas
-    if current_user.role_enum.value not in ["administrador", "supervisor"]:
+    # Permitir a todos los roles autenticados ver estadísticas
+    if not current_user:
         raise HTTPException(status_code=403, detail="No tienes permisos para ver estadísticas")
     
     # Total de novedades

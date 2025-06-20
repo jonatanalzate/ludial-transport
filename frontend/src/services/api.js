@@ -96,5 +96,6 @@ export const api = {
 
   // Novedades
   getNovedades: () => axiosInstance.get('/novedades'),
+  reportarNovedad: (data) => axiosInstance.post('/novedades', data),
   getNovedadesStats: () => axiosInstance.get('/novedades/stats'),
 }; 

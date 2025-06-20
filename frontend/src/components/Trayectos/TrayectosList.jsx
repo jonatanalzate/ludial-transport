@@ -225,18 +225,20 @@ const TrayectosList = () => {
     }
 
     try {
-      await api.getNovedades({
+      await api.reportarNovedad({
         trayecto_id: selectedTrayectoForNovedad.id,
         tipo: novedadTipo,
         notas: novedadNotas,
-        conductor_id: userId
+        conductor_id: selectedTrayectoForNovedad.conductor_id,
       });
+      
       setNovedadDialogOpen(false);
       setNovedadTipo('');
       setNovedadNotas('');
       setSelectedTrayectoForNovedad(null);
+      
       alert('Novedad reportada exitosamente');
-      fetchTrayectos();
+      fetchTrayectos(); // Refrescar datos para consistencia
     } catch (error) {
       console.error('Error al reportar novedad:', error);
       alert('Error al reportar la novedad: ' + (error.response?.data?.detail || 'Error desconocido'));
