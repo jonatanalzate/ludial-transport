@@ -55,6 +55,8 @@ class JourneyResponse(BaseModel):
     nombre_ruta: Optional[str] = None
     nombre_conductor: Optional[str] = None
     placa_vehiculo: Optional[str] = None
+    novedades: Optional[List[dict]] = None
+    cumplio_tiempo: Optional[bool] = None
 
     class Config:
         from_attributes = True
@@ -76,6 +78,19 @@ def prepare_journey_response(trayecto: Journey, db: Session) -> dict:
         vehiculo = db.query(Vehicle).filter(Vehicle.id == trayecto.vehiculo_id).first()
         ruta = db.query(Route).filter(Route.id == trayecto.ruta_id).first()
 
+        # Obtener novedades asociadas
+        novedades = db.query(db.get_bind().mapper_registry.mapped_classes['Novedad']).filter_by(trayecto_id=trayecto.id).all() if hasattr(db.get_bind().mapper_registry, 'mapped_classes') else db.query(db.get_bind().classes.Novedad).filter_by(trayecto_id=trayecto.id).all() if hasattr(db.get_bind(), 'classes') else db.query(db.get_bind().Novedad).filter_by(trayecto_id=trayecto.id).all() if hasattr(db.get_bind(), 'Novedad') else db.query(db.get_bind().Novedad).filter_by(trayecto_id=trayecto.id).all()
+        novedades_resumen = [
+            {"tipo": n.tipo.value if hasattr(n.tipo, 'value') else str(n.tipo), "notas": n.notas} for n in novedades
+        ]
+
+        # Calcular cumplimiento de tiempo
+        cumplio_tiempo = None
+        if trayecto.fecha_salida and trayecto.fecha_llegada and ruta and ruta.tiempo_estimado:
+            duracion_real = (trayecto.fecha_llegada - trayecto.fecha_salida).total_seconds() / 60
+            margen = ruta.tiempo_estimado * 0.1  # 10% de margen
+            cumplio_tiempo = (ruta.tiempo_estimado - margen) <= duracion_real <= (ruta.tiempo_estimado + margen)
+
         # Crear diccionario base
         response = {
             "id": trayecto.id,
@@ -90,7 +105,9 @@ def prepare_journey_response(trayecto: Journey, db: Session) -> dict:
             "duracion_actual": trayecto.duracion_actual,
             "nombre_ruta": ruta.nombre if ruta else "Sin ruta",
             "nombre_conductor": conductor.nombre_completo if conductor else "Sin conductor",
-            "placa_vehiculo": vehiculo.placa if vehiculo else "Sin vehículo"
+            "placa_vehiculo": vehiculo.placa if vehiculo else "Sin vehículo",
+            "novedades": novedades_resumen,
+            "cumplio_tiempo": cumplio_tiempo
         }
 
         return response

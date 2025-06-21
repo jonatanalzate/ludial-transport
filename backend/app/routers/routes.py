@@ -49,8 +49,11 @@ async def crear_ruta(ruta: RouteCreate, db: Session = Depends(get_db)):
     return db_ruta
 
 @router.get("", response_model=List[RouteResponse])
-async def listar_rutas(db: Session = Depends(get_db)):
-    return db.query(Route).all()
+async def listar_rutas(solo_activas: bool = False, db: Session = Depends(get_db)):
+    query = db.query(Route)
+    if solo_activas:
+        query = query.filter(Route.activa == True)
+    return query.all()
 
 @router.get("/{ruta_id}", response_model=RouteResponse)
 async def obtener_ruta(ruta_id: int, db: Session = Depends(get_db)):

@@ -36,6 +36,8 @@ const RutasList = () => {
     activa: true
   });
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [filterEstado, setFilterEstado] = useState('todos');
 
   useEffect(() => {
     loadRutas();
@@ -126,24 +128,68 @@ const RutasList = () => {
     }
   };
 
+  // Filtrado avanzado
+  const filteredRutas = rutas.filter((ruta) => {
+    const searchText = search.toLowerCase();
+    if (
+      searchText &&
+      !(
+        ruta.nombre.toLowerCase().includes(searchText) ||
+        ruta.origen.toLowerCase().includes(searchText) ||
+        ruta.destino.toLowerCase().includes(searchText)
+      )
+    ) {
+      return false;
+    }
+    if (filterEstado !== 'todos') {
+      if (filterEstado === 'activa' && !ruta.activa) return false;
+      if (filterEstado === 'inactiva' && ruta.activa) return false;
+    }
+    return true;
+  });
+
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4">Rutas</Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            variant="outlined"
-            onClick={() => setBulkUploadOpen(true)}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h4">Rutas</Typography>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="outlined"
+              onClick={() => setBulkUploadOpen(true)}
+            >
+              Carga Masiva
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => handleOpen()}
+            >
+              Nueva Ruta
+            </Button>
+          </Box>
+        </Box>
+        {/* Barra de búsqueda y filtros */}
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+          <TextField
+            label="Buscar por nombre, origen o destino"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            size="small"
+            sx={{ minWidth: 220 }}
+          />
+          <TextField
+            select
+            label="Estado"
+            value={filterEstado}
+            onChange={e => setFilterEstado(e.target.value)}
+            size="small"
+            SelectProps={{ native: true }}
           >
-            Carga Masiva
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => handleOpen()}
-          >
-            Nueva Ruta
-          </Button>
+            <option value="todos">Todos</option>
+            <option value="activa">Solo activas</option>
+            <option value="inactiva">Solo inactivas</option>
+          </TextField>
         </Box>
       </Box>
 
@@ -161,7 +207,7 @@ const RutasList = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rutas.map((ruta) => (
+            {filteredRutas.map((ruta) => (
               <TableRow key={ruta.id}>
                 <TableCell>{ruta.nombre}</TableCell>
                 <TableCell>{ruta.origen}</TableCell>

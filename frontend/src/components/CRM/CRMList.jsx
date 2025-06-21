@@ -156,23 +156,41 @@ const CRMList = () => {
               <TableCell>Conductor</TableCell>
               <TableCell>Vehículo</TableCell>
               <TableCell>Pasajeros</TableCell>
+              <TableCell>Novedad</TableCell>
+              <TableCell>Observación</TableCell>
+              <TableCell>Cumplió Tiempo</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredTrayectos.length > 0 ? (
               filteredTrayectos
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((trayecto) => (
-                  <TableRow key={trayecto.id}>
-                    <TableCell>{trayecto.nombre_ruta}</TableCell>
-                    <TableCell>{formatDateTime(trayecto.fecha_salida)}</TableCell>
-                    <TableCell>{formatDateTime(trayecto.fecha_llegada)}</TableCell>
-                    <TableCell>{trayecto.duracion_minutos || '-'} min</TableCell>
-                    <TableCell>{trayecto.nombre_conductor}</TableCell>
-                    <TableCell>{trayecto.placa_vehiculo}</TableCell>
-                    <TableCell>{trayecto.cantidad_pasajeros}</TableCell>
-                  </TableRow>
-                ))
+                .map((trayecto) => {
+                  // Tomar la última novedad si hay varias
+                  const novedad = trayecto.novedades && trayecto.novedades.length > 0 ? trayecto.novedades[trayecto.novedades.length - 1] : null;
+                  return (
+                    <TableRow key={trayecto.id}>
+                      <TableCell>{trayecto.nombre_ruta}</TableCell>
+                      <TableCell>{formatDateTime(trayecto.fecha_salida)}</TableCell>
+                      <TableCell>{formatDateTime(trayecto.fecha_llegada)}</TableCell>
+                      <TableCell>{trayecto.duracion_minutos || '-'} min</TableCell>
+                      <TableCell>{trayecto.nombre_conductor}</TableCell>
+                      <TableCell>{trayecto.placa_vehiculo}</TableCell>
+                      <TableCell>{trayecto.cantidad_pasajeros}</TableCell>
+                      <TableCell>{novedad ? novedad.tipo : '-'}</TableCell>
+                      <TableCell>{novedad && novedad.notas ? novedad.notas : '-'}</TableCell>
+                      <TableCell>
+                        {trayecto.cumplio_tiempo === true && (
+                          <Typography color="success.main">Sí</Typography>
+                        )}
+                        {trayecto.cumplio_tiempo === false && (
+                          <Typography color="error.main">No</Typography>
+                        )}
+                        {trayecto.cumplio_tiempo === null && '-'}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
             ) : (
               <TableRow>
                 <TableCell colSpan={7} align="center">

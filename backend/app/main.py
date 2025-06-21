@@ -56,14 +56,12 @@ app.add_middleware(NoRedirectMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://ludial-transport.vercel.app",
-        "http://localhost:3000",
-        "http://localhost:5173"
+        "https://ludial-transport.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"],
+    expose_headers=["*", "Access-Control-Allow-Origin"],
     max_age=3600
 )
 
@@ -95,4 +93,5 @@ async def add_security_headers(request: Request, call_next):
     
     # Agregar headers de seguridad
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Access-Control-Allow-Origin"] = "https://ludial-transport.vercel.app"
     return response

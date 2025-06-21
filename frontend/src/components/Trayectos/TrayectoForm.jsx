@@ -28,12 +28,12 @@ const TrayectoForm = ({ open, onClose, onSubmit, editMode = false, initialData =
     const fetchData = async () => {
       try {
         const [rutasRes, usuariosRes, vehiculosRes] = await Promise.all([
-          api.getRutas(),
-          api.getUsuarios(),
-          api.getVehiculos()
+          api.getRutasActivas(),
+          api.getConductoresActivos(),
+          api.getVehiculosActivos()
         ]);
         setRutas(rutasRes.data);
-        setConductores(usuariosRes.data.filter(u => u.rol === 'conductor'));
+        setConductores(usuariosRes.data);
         setVehiculos(vehiculosRes.data);
       } catch (error) {
         console.error('Error al cargar datos:', error);

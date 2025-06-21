@@ -67,8 +67,11 @@ async def crear_vehiculo(vehiculo: VehicleCreate, db: Session = Depends(get_db))
     return db_vehiculo
 
 @router.get("", response_model=List[VehicleResponse])
-async def listar_vehiculos(db: Session = Depends(get_db)):
-    return db.query(Vehicle).all()
+async def listar_vehiculos(solo_activos: bool = False, db: Session = Depends(get_db)):
+    query = db.query(Vehicle)
+    if solo_activos:
+        query = query.filter(Vehicle.activo == True)
+    return query.all()
 
 @router.get("/{vehiculo_id}", response_model=VehicleResponse)
 async def obtener_vehiculo(vehiculo_id: int, db: Session = Depends(get_db)):

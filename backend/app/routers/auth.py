@@ -92,6 +92,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
                 detail="Credenciales incorrectas"
             )
         
+        # Verificar si el usuario está activo
+        if not user_data['activo']:
+            logger.warning(f"Usuario inactivo: {form_data.username}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Usuario inactivo. Contacte al administrador."
+            )
+        
         # Crear token
         token_data = {
             "sub": user_data['username'],

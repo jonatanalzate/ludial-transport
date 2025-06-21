@@ -67,10 +67,15 @@ def normalize_role(role: str) -> RolUsuario:
 
 # Listar usuarios
 @router.get("/", response_model=List[UserResponse])
-async def get_users(db: Session = Depends(get_db)):
+async def get_users(solo_activos: bool = False, solo_conductores: bool = False, db: Session = Depends(get_db)):
     try:
         print("Intentando obtener usuarios...")
-        users = db.query(User).all()
+        query = db.query(User)
+        if solo_activos:
+            query = query.filter(User.activo == True)
+        if solo_conductores:
+            query = query.filter(User.rol == 'conductor')
+        users = query.all()
         print(f"Usuarios encontrados: {len(users)}")
         
         # Convertir roles a formato correcto

@@ -78,6 +78,7 @@ export const api = {
 
   // Vehículos
   getVehiculos: () => axiosInstance.get('/vehiculos'),
+  getVehiculosActivos: () => axiosInstance.get('/vehiculos?solo_activos=true'),
   createVehiculo: (data) => axiosInstance.post('/vehiculos', data),
   updateVehiculo: (id, data) => axiosInstance.put(`/vehiculos/${id}`, data),
   deleteVehiculo: (id) => axiosInstance.delete(`/vehiculos/${id}`),
@@ -85,6 +86,7 @@ export const api = {
 
   // Rutas
   getRutas: () => axiosInstance.get('/rutas'),
+  getRutasActivas: () => axiosInstance.get('/rutas?solo_activas=true'),
   createRuta: (data) => axiosInstance.post('/rutas', data),
   updateRuta: (id, data) => axiosInstance.put(`/rutas/${id}`, data),
   deleteRuta: (id) => axiosInstance.delete(`/rutas/${id}`),
@@ -92,6 +94,7 @@ export const api = {
 
   // Usuarios
   getUsuarios: () => axiosInstance.get('/usuarios'),
+  getConductoresActivos: () => axiosInstance.get('/usuarios?solo_activos=true&solo_conductores=true'),
   createUsuario: (data) => axiosInstance.post('/usuarios', data),
   updateUsuario: (id, data) => axiosInstance.put(`/usuarios/${id}`, data),
   deleteUsuario: (id) => axiosInstance.delete(`/usuarios/${id}`),
