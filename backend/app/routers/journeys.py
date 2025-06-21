@@ -201,9 +201,9 @@ async def listar_trayectos(request: Request, db: Session = Depends(get_db)):
         total_count = db.query(Journey).count()
         # logger.info(f"Total de registros en la tabla Journey: {total_count}")
         
-        # Obtener todos los trayectos
-        trayectos = db.query(Journey).all()
-        # logger.info(f"Trayectos encontrados: {len(trayectos)}")
+        # Obtener todos los trayectos que no tengan un vehiculo_id nulo
+        trayectos = db.query(Journey).filter(Journey.vehiculo_id != None).all()
+        # logger.info(f"Trayectos encontrados (filtrando nulos): {len(trayectos)}")
         
         # Verificar estructura de cada trayecto
         for t in trayectos:
