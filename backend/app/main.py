@@ -31,14 +31,14 @@ from .routers import (
     novedades_router
 )
 
-class NoRedirectMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        response = await call_next(request)
-        if response.status_code in [301, 302, 307, 308]:
-            location = response.headers.get('location', '')
-            if location.startswith('http://'):
-                response.headers['location'] = location.replace('http://', 'https://')
-        return response
+# class NoRedirectMiddleware(BaseHTTPMiddleware):
+#     async def dispatch(self, request: Request, call_next):
+#         response = await call_next(request)
+#         if response.status_code in [301, 302, 307, 308]:
+#             location = response.headers.get('location', '')
+#             if location.startswith('http://'):
+#                 response.headers['location'] = location.replace('http://', 'https://')
+#         return response
 
 app = FastAPI(
     title="Sistema de Transporte",
@@ -50,7 +50,7 @@ app = FastAPI(
 )
 
 # Middleware para manejar redirecciones
-app.add_middleware(NoRedirectMiddleware)
+# app.add_middleware(NoRedirectMiddleware)
 
 # Configuración de CORS más permisiva para desarrollo y producción
 origins = os.getenv("CORS_ORIGINS", "https://ludial-transport.vercel.app,http://localhost:3000").split(",")
