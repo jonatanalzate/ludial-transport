@@ -28,8 +28,8 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // Asegurarnos de que no hay barras al final de la URL
-    config.url = config.url.replace(/\/$/, '');
+    // Asegurarnos de que no hay barras duplicadas en la URL
+    config.url = `${axiosInstance.defaults.baseURL.replace(/\/$/, '')}/${config.url.replace(/^\//, '')}`;
     return config;
   },
   (error) => Promise.reject(error)
