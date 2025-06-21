@@ -12,6 +12,7 @@ import traceback
 from sqlalchemy import text
 from ..models.user import User
 from fastapi.encoders import jsonable_encoder
+from ..models.novedad import Novedad
 
 # Configurar logging con más detalle
 logging.basicConfig(
@@ -79,7 +80,7 @@ def prepare_journey_response(trayecto: Journey, db: Session) -> dict:
         ruta = db.query(Route).filter(Route.id == trayecto.ruta_id).first()
 
         # Obtener novedades asociadas
-        novedades = db.query(db.get_bind().mapper_registry.mapped_classes['Novedad']).filter_by(trayecto_id=trayecto.id).all() if hasattr(db.get_bind().mapper_registry, 'mapped_classes') else db.query(db.get_bind().classes.Novedad).filter_by(trayecto_id=trayecto.id).all() if hasattr(db.get_bind(), 'classes') else db.query(db.get_bind().Novedad).filter_by(trayecto_id=trayecto.id).all() if hasattr(db.get_bind(), 'Novedad') else db.query(db.get_bind().Novedad).filter_by(trayecto_id=trayecto.id).all()
+        novedades = db.query(Novedad).filter_by(trayecto_id=trayecto.id).all()
         novedades_resumen = [
             {"tipo": n.tipo.value if hasattr(n.tipo, 'value') else str(n.tipo), "notas": n.notas} for n in novedades
         ]
