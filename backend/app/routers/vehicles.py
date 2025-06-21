@@ -4,14 +4,15 @@ from typing import List, Optional
 from ..database import get_db
 from ..models.vehicle import Vehicle, PicoYPlacaConfig
 from pydantic import BaseModel
+from datetime import date
 
 class VehicleBase(BaseModel):
     placa: str
     modelo: str
     capacidad: int
-    soat_vencimiento: Optional[str] = None  # ISO date string
-    tecnomecanica_vencimiento: Optional[str] = None
-    kit_vencimiento: Optional[str] = None
+    soat_vencimiento: Optional[date] = None
+    tecnomecanica_vencimiento: Optional[date] = None
+    kit_vencimiento: Optional[date] = None
     pico_placa: Optional[str] = None
     activo: Optional[bool] = True
 
@@ -22,9 +23,9 @@ class VehicleUpdate(BaseModel):
     placa: Optional[str] = None
     modelo: Optional[str] = None
     capacidad: Optional[int] = None
-    soat_vencimiento: Optional[str] = None
-    tecnomecanica_vencimiento: Optional[str] = None
-    kit_vencimiento: Optional[str] = None
+    soat_vencimiento: Optional[date] = None
+    tecnomecanica_vencimiento: Optional[date] = None
+    kit_vencimiento: Optional[date] = None
     pico_placa: Optional[str] = None
     activo: Optional[bool] = None
 

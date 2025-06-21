@@ -337,9 +337,9 @@ const VehiculosList = () => {
               <TableCell>Modelo</TableCell>
               <TableCell>Capacidad</TableCell>
               <TableCell>Pico y Placa</TableCell>
-              <TableCell>SOAT Vence</TableCell>
-              <TableCell>Tecnomecánica Vence</TableCell>
-              <TableCell>Kit Carretera Vence</TableCell>
+              <TableCell>SOAT</TableCell>
+              <TableCell>Tecnomecánica</TableCell>
+              <TableCell>Kit</TableCell>
               <TableCell>Activo</TableCell>
               <TableCell align="right">Acciones</TableCell>
             </TableRow>

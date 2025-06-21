@@ -80,7 +80,7 @@ const VehiculoForm = ({ open, onClose, onSubmit, initialData = null }) => {
             <Grid item xs={12} sm={4}>
               <TextField
                 fullWidth
-                label="SOAT Vence"
+                label="SOAT"
                 type="date"
                 InputLabelProps={{ shrink: true }}
                 value={formData.soat_vencimiento}
@@ -90,7 +90,7 @@ const VehiculoForm = ({ open, onClose, onSubmit, initialData = null }) => {
             <Grid item xs={12} sm={4}>
               <TextField
                 fullWidth
-                label="Tecnomecánica Vence"
+                label="Tecnomecánica"
                 type="date"
                 InputLabelProps={{ shrink: true }}
                 value={formData.tecnomecanica_vencimiento}
@@ -100,7 +100,7 @@ const VehiculoForm = ({ open, onClose, onSubmit, initialData = null }) => {
             <Grid item xs={12} sm={4}>
               <TextField
                 fullWidth
-                label="Kit Carretera Vence"
+                label="Kit"
                 type="date"
                 InputLabelProps={{ shrink: true }}
                 value={formData.kit_vencimiento}
