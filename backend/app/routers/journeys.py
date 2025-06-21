@@ -98,7 +98,7 @@ def prepare_journey_response(trayecto: Journey, db: Session) -> dict:
             "conductor_id": trayecto.conductor_id,
             "vehiculo_id": trayecto.vehiculo_id,
             "ruta_id": trayecto.ruta_id,
-            "estado": trayecto.estado,
+            "estado": trayecto.estado.value if hasattr(trayecto.estado, 'value') else str(trayecto.estado),
             "fecha_salida": trayecto.fecha_salida,
             "fecha_llegada": trayecto.fecha_llegada,
             "duracion_minutos": trayecto.duracion_minutos,

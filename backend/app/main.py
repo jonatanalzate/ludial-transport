@@ -53,16 +53,14 @@ app = FastAPI(
 app.add_middleware(NoRedirectMiddleware)
 
 # Configuración de CORS más permisiva para desarrollo y producción
+origins = os.getenv("CORS_ORIGINS", "https://ludial-transport.vercel.app,http://localhost:3000").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://ludial-transport.vercel.app"
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*", "Access-Control-Allow-Origin"],
-    max_age=3600
 )
 
 # Crear las tablas en la base de datos
@@ -93,5 +91,7 @@ async def add_security_headers(request: Request, call_next):
     
     # Agregar headers de seguridad
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["Access-Control-Allow-Origin"] = "https://ludial-transport.vercel.app"
+    if "origin" in request.headers and request.headers["origin"] in origins:
+        response.headers["Access-Control-Allow-Origin"] = request.headers["origin"]
+    
     return response
