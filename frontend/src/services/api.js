@@ -2,9 +2,14 @@ import axios from 'axios';
 
 // Asegurarnos de que siempre usamos HTTPS en producción
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-const baseURL = process.env.NODE_ENV === 'production' 
-  ? API_URL.replace(/^http:/, 'https:').replace(/\/$/, '') 
-  : API_URL;
+
+let baseURL;
+if (process.env.NODE_ENV === 'production') {
+  // En producción, siempre forzar HTTPS y quitar la barra final.
+  baseURL = API_URL.replace(/^http:/, 'https:').replace(/\/$/, '');
+} else {
+  baseURL = API_URL;
+}
 
 // console.log('API Service - Using URL:', baseURL);
 
@@ -28,8 +33,7 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // Asegurarnos de que no hay barras duplicadas en la URL
-    config.url = `${axiosInstance.defaults.baseURL.replace(/\/$/, '')}/${config.url.replace(/^\//, '')}`;
+    // Se elimina la manipulación de la URL para evitar errores de Mixed Content.
     return config;
   },
   (error) => Promise.reject(error)
