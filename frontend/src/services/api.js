@@ -6,7 +6,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 let baseURL;
 if (process.env.NODE_ENV === 'production') {
   // En producción, siempre forzar HTTPS y quitar la barra final.
-  baseURL = API_URL.replace(/^http:/, 'https:').replace(/\/$/, '');
+  baseURL = API_URL.replace(/^(?:https?:\/\/)?(.*)/, 'https://$1').replace(/\/$/, '');
 } else {
   baseURL = API_URL;
 }
