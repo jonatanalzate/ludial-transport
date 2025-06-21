@@ -92,16 +92,22 @@ const Dashboard = () => {
   const [rutasModalOpen, setRutasModalOpen] = useState(false);
   const [pasajerosHoy, setPasajerosHoy] = useState(0);
   const [novedadesStats, setNovedadesStats] = useState({ loading: true, data: { total: 0, hoy: 0, por_tipo: {} } });
+  const [novedadesDia, setNovedadesDia] = useState([]);
+  const [vehiculosFueraDeTiempo, setVehiculosFueraDeTiempo] = useState(0);
+  const [fueraDeTiempoModalOpen, setFueraDeTiempoModalOpen] = useState(false);
+  const [trayectosFueraDeTiempo, setTrayectosFueraDeTiempo] = useState([]);
   const theme = useTheme();
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [vehiculosRes, usuariosRes, rutasRes, trayectosRes] = await Promise.all([
+        const [vehiculosRes, usuariosRes, rutasRes, trayectosRes, novedadesRes, novedadesListRes] = await Promise.all([
           api.getVehiculos(),
           api.getUsuarios(),
           api.getRutas(),
-          api.getTrayectos()
+          api.getTrayectos(),
+          api.getNovedadesStats(),
+          api.getNovedades()
         ]);
 
         // Filtrar conductores desde usuarios
@@ -151,8 +157,25 @@ const Dashboard = () => {
         setPasajerosHoy(pasajerosHoy);
 
         // Cargar KPIs de novedades
-        const novedadesRes = await api.getNovedadesStats();
         setNovedadesStats({ loading: false, data: novedadesRes.data });
+
+        // Filtrar novedades del día
+        const novedadesHoy = (novedadesListRes.data || []).filter(nov =>
+          nov.fecha_reporte && format(new Date(nov.fecha_reporte), 'yyyy-MM-dd') === today
+        );
+        setNovedadesDia(novedadesHoy);
+
+        // Calcular vehículos fuera de tiempo
+        const now = new Date();
+        const trayectosFuera = trayectosRes.data.filter(t => {
+          if (!t.estado || t.estado.toLowerCase() !== 'en_curso') return false;
+          if (!t.fecha_salida || !t.duracion_minutos) return false;
+          const salida = new Date(t.fecha_salida);
+          const estimadoMs = (t.duracion_minutos || 60) * 60 * 1000;
+          return now.getTime() > salida.getTime() + estimadoMs;
+        });
+        setVehiculosFueraDeTiempo(trayectosFuera.length);
+        setTrayectosFueraDeTiempo(trayectosFuera);
       } catch (error) {
         console.error('Error al cargar datos:', error);
       }
@@ -255,155 +278,151 @@ const Dashboard = () => {
           </Paper>
         </Grid>
 
-        {/* KPI Total Novedades */}
+        {/* KPI Vehículos fuera de tiempo */}
         <Grid item xs={12} sm={6} md={4}>
-          <Paper sx={{ p: 3, borderRadius: 3, height: '100%', background: 'linear-gradient(90deg, #ffeaea 0%, #ffcdd2 100%)', boxShadow: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <Paper
+            sx={{ p: 3, borderRadius: 3, height: '100%', background: 'linear-gradient(90deg, #ffeaea 0%, #ffcdd2 100%)', boxShadow: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: vehiculosFueraDeTiempo > 0 ? 'pointer' : 'default', opacity: vehiculosFueraDeTiempo > 0 ? 1 : 0.7 }}
+            onClick={() => vehiculosFueraDeTiempo > 0 && setFueraDeTiempoModalOpen(true)}
+          >
             <Typography variant="subtitle2" color="#f44336" sx={{ fontWeight: 700, letterSpacing: 1 }}>
-              TOTAL NOVEDADES
+              VEHÍCULOS FUERA DE TIEMPO
             </Typography>
-            {novedadesStats.loading ? <CircularProgress size={20} /> : (
-              <Typography variant="h4" color="#f44336" sx={{ fontWeight: 900, mt: 1 }}>
-                {novedadesStats.data.total}
+            <Typography variant="h4" color="#f44336" sx={{ fontWeight: 900, mt: 1 }}>
+              {vehiculosFueraDeTiempo}
+            </Typography>
+            {vehiculosFueraDeTiempo > 0 && (
+              <Typography variant="caption" color="textSecondary" sx={{ mt: 1 }}>
+                Haz clic para ver detalles
               </Typography>
             )}
           </Paper>
         </Grid>
       </Grid>
 
-      {/* Novedades por tipo */}
-      <Typography variant="h6" sx={{ mb: 2, mt: 4, color: 'text.secondary' }}>Desglose de Novedades</Typography>
-      <Grid container spacing={3}>
-        {Object.entries(novedadesStats.data.por_tipo || {}).length > 0 ? (
-          Object.entries(novedadesStats.data.por_tipo).map(([tipo, cantidad]) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={tipo}>
-              <Paper sx={{ p: 2, borderRadius: 3, background: NOVEDAD_COLORS[tipo] + '22', boxShadow: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Warning sx={{ color: NOVEDAD_COLORS[tipo], fontSize: 32 }} />
-                <Box>
-                  <Typography variant="subtitle2" color={NOVEDAD_COLORS[tipo]} sx={{ fontWeight: 700 }}>
-                    {tipo.toUpperCase()}
+      {/* Desglose de Novedades del Día */}
+      <Typography variant="h6" sx={{ mb: 2, mt: 4, color: 'text.secondary' }}>Novedades del Día</Typography>
+      {novedadesStats.loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : novedadesDia.length === 0 ? (
+        <Typography sx={{ color: 'text.secondary', fontStyle: 'italic', mb: 4 }}>
+          No hay novedades reportadas hoy.
+        </Typography>
+      ) : (
+        <Box>
+          {novedadesDia.map((nov) => (
+            <Accordion key={nov.id} sx={{ mb: 2, borderRadius: 2, boxShadow: theme.shadows[1] }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: NOVEDAD_COLORS[nov.tipo] }}>
+                    {nov.tipo}
                   </Typography>
-                  <Typography variant="h5" color={NOVEDAD_COLORS[tipo]} sx={{ fontWeight: 800 }}>
-                    {cantidad}
+                  <Typography variant="body2" color="textSecondary">
+                    {nov.nombre_conductor} &nbsp;|&nbsp; {nov.nombre_ruta} &nbsp;|&nbsp; {format(new Date(nov.fecha_reporte), 'HH:mm')}
                   </Typography>
                 </Box>
-              </Paper>
-            </Grid>
-          ))
-        ) : (
-          <Grid item xs={12}>
-            <Typography sx={{ color: 'text.secondary', fontStyle: 'italic' }}>No hay novedades por tipo para mostrar.</Typography>
-          </Grid>
-        )}
-      </Grid>
-      
-      {/* Tarjetas de módulos clickables y animadas */}
+              </AccordionSummary>
+              <AccordionDetails>
+                <Typography variant="body2" sx={{ mb: 1 }}><b>Observación:</b> {nov.notas || 'Sin observación'}</Typography>
+                <Typography variant="body2"><b>Conductor:</b> {nov.nombre_conductor}</Typography>
+                <Typography variant="body2"><b>Ruta:</b> {nov.nombre_ruta}</Typography>
+                <Typography variant="body2"><b>Fecha reporte:</b> {format(new Date(nov.fecha_reporte), 'yyyy-MM-dd HH:mm')}</Typography>
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </Box>
+      )}
+
+      {/* Tarjetas de módulos informativas */}
       <Grid container spacing={3} sx={{ mt: 3 }}>
         <Grid item xs={12} md={6} lg={4}>
           <Box
-            onClick={() => setVehiculosModalOpen(true)}
             sx={{
-              cursor: 'pointer',
-              transition: 'transform 0.25s cubic-bezier(.4,2,.6,1), box-shadow 0.25s cubic-bezier(.4,2,.6,1)',
-              '&:hover': {
-                transform: 'scale(1.05)',
-                boxShadow: '0 8px 32px 0 rgba(76,175,80,0.25)',
-                border: '2px solid #388e3c',
-                background: 'linear-gradient(90deg, #e8f5e9 0%, #c8e6c9 100%)',
-              },
               borderRadius: 3,
               boxShadow: theme.shadows[3],
               border: '2px solid transparent',
               background: 'linear-gradient(90deg, #f5fff7 0%, #e8f5e9 100%)',
             }}
           >
-          <StatCard
-            icon={<DirectionsBus sx={{ color: 'white', fontSize: 40 }} />}
-            title="VEHÍCULOS"
-            stats={stats.vehiculos.data}
-            loading={stats.vehiculos.loading}
-            color="#4caf50"
-          />
+            <StatCard
+              icon={<DirectionsBus sx={{ color: 'white', fontSize: 40 }} />}
+              title="VEHÍCULOS"
+              stats={stats.vehiculos.data}
+              loading={stats.vehiculos.loading}
+              color="#4caf50"
+            />
           </Box>
         </Grid>
         <Grid item xs={12} md={6} lg={4}>
           <Box
-            onClick={() => setConductoresModalOpen(true)}
             sx={{
-              cursor: 'pointer',
-              transition: 'transform 0.25s cubic-bezier(.4,2,.6,1), box-shadow 0.25s cubic-bezier(.4,2,.6,1)',
-              '&:hover': {
-                transform: 'scale(1.05)',
-                boxShadow: '0 8px 32px 0 rgba(33,150,243,0.25)',
-                border: '2px solid #1565c0',
-                background: 'linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%)',
-              },
               borderRadius: 3,
               boxShadow: theme.shadows[3],
               border: '2px solid transparent',
               background: 'linear-gradient(90deg, #f5faff 0%, #e3f2fd 100%)',
             }}
           >
-          <StatCard
-            icon={<Person sx={{ color: 'white', fontSize: 40 }} />}
-            title="CONDUCTORES"
-            stats={stats.conductores.data}
-            loading={stats.conductores.loading}
-            color="#2196f3"
-          />
+            <StatCard
+              icon={<Person sx={{ color: 'white', fontSize: 40 }} />}
+              title="CONDUCTORES"
+              stats={stats.conductores.data}
+              loading={stats.conductores.loading}
+              color="#2196f3"
+            />
           </Box>
         </Grid>
         <Grid item xs={12} md={6} lg={4}>
           <Box
-            onClick={() => setRutasModalOpen(true)}
             sx={{
-              cursor: 'pointer',
-              transition: 'transform 0.25s cubic-bezier(.4,2,.6,1), box-shadow 0.25s cubic-bezier(.4,2,.6,1)',
-              '&:hover': {
-                transform: 'scale(1.05)',
-                boxShadow: '0 8px 32px 0 rgba(255,152,0,0.25)',
-                border: '2px solid #ef6c00',
-                background: 'linear-gradient(90deg, #fff8e1 0%, #ffe0b2 100%)',
-              },
               borderRadius: 3,
               boxShadow: theme.shadows[3],
               border: '2px solid transparent',
               background: 'linear-gradient(90deg, #fffdf5 0%, #fff8e1 100%)',
             }}
           >
-          <StatCard
-            icon={<Route sx={{ color: 'white', fontSize: 40 }} />}
-            title="RUTAS"
-            stats={stats.rutas.data}
-            loading={stats.rutas.loading}
-            color="#ff9800"
-          />
+            <StatCard
+              icon={<Route sx={{ color: 'white', fontSize: 40 }} />}
+              title="RUTAS"
+              stats={stats.rutas.data}
+              loading={stats.rutas.loading}
+              color="#ff9800"
+            />
           </Box>
         </Grid>
       </Grid>
 
-      {/* Modales para cada módulo */}
-      <Dialog open={vehiculosModalOpen} onClose={() => setVehiculosModalOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700, color: '#388e3c', bgcolor: '#e8f5e9' }}>Vehículos</DialogTitle>
-        <DialogContent dividers sx={{ bgcolor: '#f5fff7' }}>
-          <Typography variant="body1" sx={{ mb: 2 }}>Total: <b>{stats.vehiculos.data['Total']}</b></Typography>
-          <Typography variant="body1" sx={{ mb: 2 }}>En servicio: <b>{stats.vehiculos.data['En servicio']}</b></Typography>
-          <Button variant="contained" color="success" fullWidth sx={{ mt: 2 }} onClick={() => window.location.href = '/vehiculos'}>Ver lista de vehículos</Button>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={conductoresModalOpen} onClose={() => setConductoresModalOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700, color: '#1565c0', bgcolor: '#e3f2fd' }}>Conductores</DialogTitle>
-        <DialogContent dividers sx={{ bgcolor: '#f5faff' }}>
-          <Typography variant="body1" sx={{ mb: 2 }}>Total: <b>{stats.conductores.data['Total']}</b></Typography>
-          <Typography variant="body1" sx={{ mb: 2 }}>En servicio: <b>{stats.conductores.data['En servicio']}</b></Typography>
-          <Button variant="contained" color="primary" fullWidth sx={{ mt: 2 }} onClick={() => window.location.href = '/conductores'}>Ver lista de conductores</Button>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={rutasModalOpen} onClose={() => setRutasModalOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700, color: '#ef6c00', bgcolor: '#fff8e1' }}>Rutas</DialogTitle>
-        <DialogContent dividers sx={{ bgcolor: '#fffdf5' }}>
-          <Typography variant="body1" sx={{ mb: 2 }}>Total: <b>{stats.rutas.data['Total']}</b></Typography>
-          <Typography variant="body1" sx={{ mb: 2 }}>Activas: <b>{stats.rutas.data['Activas']}</b></Typography>
-          <Button variant="contained" color="warning" fullWidth sx={{ mt: 2 }} onClick={() => window.location.href = '/rutas'}>Ver lista de rutas</Button>
+      {/* Modal de trayectos fuera de tiempo */}
+      <Dialog open={fueraDeTiempoModalOpen} onClose={() => setFueraDeTiempoModalOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span>Vehículos fuera de tiempo</span>
+          <IconButton onClick={() => setFueraDeTiempoModalOpen(false)}>
+            <span style={{ fontSize: 24, fontWeight: 'bold' }}>&times;</span>
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ bgcolor: '#f5f5f5' }}>
+          {trayectosFueraDeTiempo.length === 0 ? (
+            <Typography>No hay trayectos fuera de tiempo.</Typography>
+          ) : (
+            <Box>
+              {trayectosFueraDeTiempo.map((t) => {
+                const salida = new Date(t.fecha_salida);
+                const estimado = t.duracion_minutos || 60;
+                const transcurrido = Math.floor((Date.now() - salida.getTime()) / 60000);
+                return (
+                  <Paper key={t.id} sx={{ mb: 2, p: 2, borderRadius: 2, boxShadow: 1, background: '#fff3e0' }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#f44336' }}>
+                      {t.placa_vehiculo || 'Vehículo'} - {t.nombre_ruta || 'Ruta'}
+                    </Typography>
+                    <Typography variant="body2"><b>Conductor:</b> {t.nombre_conductor || '-'}</Typography>
+                    <Typography variant="body2"><b>Hora de salida:</b> {format(salida, 'yyyy-MM-dd HH:mm')}</Typography>
+                    <Typography variant="body2"><b>Tiempo estimado:</b> {estimado} min</Typography>
+                    <Typography variant="body2" color="#f44336"><b>Tiempo transcurrido:</b> {transcurrido} min</Typography>
+                  </Paper>
+                );
+              })}
+            </Box>
+          )}
         </DialogContent>
       </Dialog>
     </Box>
