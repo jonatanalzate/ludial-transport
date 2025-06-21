@@ -1,14 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from ..database import get_db
-from ..models.vehicle import Vehicle
+from ..models.vehicle import Vehicle, PicoYPlacaConfig
 from pydantic import BaseModel
 
 class VehicleBase(BaseModel):
     placa: str
     modelo: str
     capacidad: int
+    soat_vencimiento: Optional[str] = None  # ISO date string
+    tecnomecanica_vencimiento: Optional[str] = None
+    kit_vencimiento: Optional[str] = None
+    pico_placa: Optional[str] = None
+    activo: Optional[bool] = True
 
 class VehicleCreate(VehicleBase):
     pass
@@ -17,6 +22,11 @@ class VehicleUpdate(BaseModel):
     placa: Optional[str] = None
     modelo: Optional[str] = None
     capacidad: Optional[int] = None
+    soat_vencimiento: Optional[str] = None
+    tecnomecanica_vencimiento: Optional[str] = None
+    kit_vencimiento: Optional[str] = None
+    pico_placa: Optional[str] = None
+    activo: Optional[bool] = None
 
 class VehicleResponse(VehicleBase):
     id: int
@@ -26,6 +36,12 @@ class VehicleResponse(VehicleBase):
 
 class VehiclesCreateBulk(BaseModel):
     vehiculos: List[VehicleCreate]
+
+class PicoYPlacaConfigSchema(BaseModel):
+    config: dict
+
+    class Config:
+        from_attributes = True
 
 router = APIRouter(
     prefix="/vehiculos",
@@ -38,7 +54,12 @@ async def crear_vehiculo(vehiculo: VehicleCreate, db: Session = Depends(get_db))
     db_vehiculo = Vehicle(
         placa=vehiculo.placa,
         modelo=vehiculo.modelo,
-        capacidad=vehiculo.capacidad
+        capacidad=vehiculo.capacidad,
+        soat_vencimiento=vehiculo.soat_vencimiento,
+        tecnomecanica_vencimiento=vehiculo.tecnomecanica_vencimiento,
+        kit_vencimiento=vehiculo.kit_vencimiento,
+        pico_placa=vehiculo.pico_placa,
+        activo=vehiculo.activo
     )
     db.add(db_vehiculo)
     db.commit()
@@ -63,7 +84,12 @@ async def crear_vehiculos_bulk(vehiculos: VehiclesCreateBulk, db: Session = Depe
         db_vehiculo = Vehicle(
             placa=vehiculo.placa,
             modelo=vehiculo.modelo,
-            capacidad=vehiculo.capacidad
+            capacidad=vehiculo.capacidad,
+            soat_vencimiento=vehiculo.soat_vencimiento,
+            tecnomecanica_vencimiento=vehiculo.tecnomecanica_vencimiento,
+            kit_vencimiento=vehiculo.kit_vencimiento,
+            pico_placa=vehiculo.pico_placa,
+            activo=vehiculo.activo
         )
         db_vehiculos.append(db_vehiculo)
     
@@ -94,4 +120,28 @@ async def eliminar_vehiculo(vehiculo_id: int, db: Session = Depends(get_db)):
     
     db.delete(db_vehiculo)
     db.commit()
-    return {"message": "Vehículo eliminado"} 
+    return {"message": "Vehículo eliminado"}
+
+@router.get("/pico-y-placa-config", response_model=PicoYPlacaConfigSchema)
+async def get_pico_y_placa_config(db: Session = Depends(get_db)):
+    config = db.query(PicoYPlacaConfig).first()
+    if not config:
+        # Valor por defecto si no existe
+        default = {"1": ["0", "1"], "2": ["2", "3"], "3": ["4"], "4": ["5", "6"], "5": ["7", "8"], "6": ["9"], "0": []}
+        config = PicoYPlacaConfig(config=default)
+        db.add(config)
+        db.commit()
+        db.refresh(config)
+    return config
+
+@router.put("/pico-y-placa-config", response_model=PicoYPlacaConfigSchema)
+async def update_pico_y_placa_config(data: PicoYPlacaConfigSchema = Body(...), db: Session = Depends(get_db)):
+    config = db.query(PicoYPlacaConfig).first()
+    if not config:
+        config = PicoYPlacaConfig(config=data.config)
+        db.add(config)
+    else:
+        config.config = data.config
+    db.commit()
+    db.refresh(config)
+    return config 

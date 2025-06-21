@@ -325,13 +325,13 @@ const TrayectosList = () => {
         <Typography variant="h4">Trayectos</Typography>
         {userRole !== 'conductor' && (
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => setOpenForm(true)}
-            >
-              Nuevo Trayecto
-            </Button>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setOpenForm(true)}
+        >
+          Nuevo Trayecto
+        </Button>
             <Button
               variant="outlined"
               startIcon={<UploadFileIcon />}
@@ -467,22 +467,22 @@ const TrayectosList = () => {
                     )}
                     {trayecto.estado.toLowerCase() === 'en_curso' && (
                       <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          startIcon={<FlagCircle />}
-                          onClick={() => handleFinalizarClick(trayecto)}
-                          sx={{
-                            borderRadius: 3,
-                            fontWeight: 'bold',
-                            textTransform: 'none',
-                            boxShadow: 2,
-                            bgcolor: '#1976d2',
-                            '&:hover': { bgcolor: '#115293' }
-                          }}
-                        >
-                          Finalizar
-                        </Button>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<FlagCircle />}
+                        onClick={() => handleFinalizarClick(trayecto)}
+                        sx={{
+                          borderRadius: 3,
+                          fontWeight: 'bold',
+                          textTransform: 'none',
+                          boxShadow: 2,
+                          bgcolor: '#1976d2',
+                          '&:hover': { bgcolor: '#115293' }
+                        }}
+                      >
+                        Finalizar
+                      </Button>
                         <Button
                           variant="contained"
                           color="warning"
@@ -521,7 +521,7 @@ const TrayectosList = () => {
             if (editMode && trayectoToEdit) {
               await api.updateTrayecto(trayectoToEdit.id, data);
             } else {
-              await api.createTrayecto(data);
+            await api.createTrayecto(data);
             }
             fetchTrayectos();
             setOpenForm(false);

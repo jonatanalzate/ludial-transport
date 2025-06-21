@@ -385,7 +385,7 @@ async def actualizar_ubicacion(
         ubicacion = Location(conductor_id=conductor_id, lat=lat, lng=lng, timestamp=now)
         db.add(ubicacion)
     db.commit()
-    return {"ok": True}
+    return {"ok": True} 
 
 @router.delete("/{trayecto_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def eliminar_trayecto(trayecto_id: int, db: Session = Depends(get_db)):

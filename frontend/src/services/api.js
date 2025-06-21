@@ -101,4 +101,8 @@ export const api = {
   getNovedades: () => axiosInstance.get('/novedades'),
   reportarNovedad: (data) => axiosInstance.post('/novedades', data),
   getNovedadesStats: () => axiosInstance.get('/novedades/stats'),
+
+  // Pico y Placa Config
+  getPicoYPlacaConfig: () => axiosInstance.get('/vehiculos/pico-y-placa-config'),
+  updatePicoYPlacaConfig: (data) => axiosInstance.put('/vehiculos/pico-y-placa-config', data),
 }; 

@@ -92,21 +92,21 @@ const Sidebar = ({ open, onClose }) => {
               button
               key={item.text}
               onClick={() => {
-                navigate(item.path);
-                if (isMobile) onClose();
-              }}
-              sx={{
-                '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 0.1)',
-                },
-                pl: 3
-              }}
-            >
-              <ListItemIcon sx={{ color: 'white', minWidth: 40 }}>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItem>
+              navigate(item.path);
+              if (isMobile) onClose();
+            }}
+            sx={{
+              '&:hover': {
+                bgcolor: 'rgba(255, 255, 255, 0.1)',
+              },
+              pl: 3
+            }}
+          >
+            <ListItemIcon sx={{ color: 'white', minWidth: 40 }}>
+              {item.icon}
+            </ListItemIcon>
+            <ListItemText primary={item.text} />
+          </ListItem>
           )
         ))}
       </List>

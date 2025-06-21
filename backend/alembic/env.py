@@ -35,7 +35,10 @@ from app.database import Base
 target_metadata = Base.metadata
 
 # Obtener la URL de la base de datos del entorno
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/dbname")
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres:OPlDdCNwKTaqfCFsutgJQHLaVxFcOlnf@centerbeam.proxy.rlwy.net:51486/railway"
+)
 if DATABASE_URL is not None and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 if DATABASE_URL:

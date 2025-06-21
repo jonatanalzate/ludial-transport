@@ -316,13 +316,13 @@ const Dashboard = () => {
               background: 'linear-gradient(90deg, #f5fff7 0%, #e8f5e9 100%)',
             }}
           >
-            <StatCard
-              icon={<DirectionsBus sx={{ color: 'white', fontSize: 40 }} />}
-              title="VEHÍCULOS"
-              stats={stats.vehiculos.data}
-              loading={stats.vehiculos.loading}
-              color="#4caf50"
-            />
+          <StatCard
+            icon={<DirectionsBus sx={{ color: 'white', fontSize: 40 }} />}
+            title="VEHÍCULOS"
+            stats={stats.vehiculos.data}
+            loading={stats.vehiculos.loading}
+            color="#4caf50"
+          />
           </Box>
         </Grid>
         <Grid item xs={12} md={6} lg={4}>
@@ -343,13 +343,13 @@ const Dashboard = () => {
               background: 'linear-gradient(90deg, #f5faff 0%, #e3f2fd 100%)',
             }}
           >
-            <StatCard
-              icon={<Person sx={{ color: 'white', fontSize: 40 }} />}
-              title="CONDUCTORES"
-              stats={stats.conductores.data}
-              loading={stats.conductores.loading}
-              color="#2196f3"
-            />
+          <StatCard
+            icon={<Person sx={{ color: 'white', fontSize: 40 }} />}
+            title="CONDUCTORES"
+            stats={stats.conductores.data}
+            loading={stats.conductores.loading}
+            color="#2196f3"
+          />
           </Box>
         </Grid>
         <Grid item xs={12} md={6} lg={4}>
@@ -370,13 +370,13 @@ const Dashboard = () => {
               background: 'linear-gradient(90deg, #fffdf5 0%, #fff8e1 100%)',
             }}
           >
-            <StatCard
-              icon={<Route sx={{ color: 'white', fontSize: 40 }} />}
-              title="RUTAS"
-              stats={stats.rutas.data}
-              loading={stats.rutas.loading}
-              color="#ff9800"
-            />
+          <StatCard
+            icon={<Route sx={{ color: 'white', fontSize: 40 }} />}
+            title="RUTAS"
+            stats={stats.rutas.data}
+            loading={stats.rutas.loading}
+            color="#ff9800"
+          />
           </Box>
         </Grid>
       </Grid>
