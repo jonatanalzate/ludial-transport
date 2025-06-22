@@ -88,7 +88,12 @@ const VehiculosList = () => {
   const handleConfigSave = async () => {
     setSavingConfig(true);
     try {
-      await api.updatePicoYPlacaConfig({ config: configDraft });
+      // Asegurar que las claves sean strings
+      const configToSend = {};
+      Object.keys(configDraft).forEach(key => {
+        configToSend[String(key)] = configDraft[key];
+      });
+      await api.updatePicoYPlacaConfig({ config: configToSend });
       setPicoYPlacaConfig({ ...configDraft });
       setConfigOpen(false);
     } catch (e) {
