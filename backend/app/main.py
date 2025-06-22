@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -41,9 +40,6 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
-
-# Middleware para reconocer headers de proxy (X-Forwarded-Proto)
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 # Configuración de CORS más permisiva para desarrollo y producción
 origins = os.getenv("CORS_ORIGINS", "https://ludial-transport.vercel.app,http://localhost:3000").split(",")
