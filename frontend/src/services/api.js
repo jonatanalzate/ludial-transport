@@ -6,13 +6,11 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 console.log('API_URL en runtime:', API_URL);
 console.log('NODE_ENV:', process.env.NODE_ENV);
 
-let baseURL;
-if (process.env.NODE_ENV === 'production') {
-  // En producción, siempre forzar HTTPS y quitar la barra final.
-  baseURL = API_URL.replace(/^(?:https?:\/\/)?(.*)/, 'https://$1').replace(/\/$/, '');
-} else {
-  baseURL = API_URL;
+let baseURL = API_URL;
+if (!baseURL.startsWith('https://')) {
+  baseURL = 'https://' + baseURL.replace(/^https?:\/\//, '');
 }
+baseURL = baseURL.replace(/\/$/, '');
 
 // console.log('API Service - Using URL:', baseURL);
 
