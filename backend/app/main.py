@@ -4,6 +4,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 import os
 from dotenv import load_dotenv
 import logging
+from fastapi.middleware.proxy_headers import ProxyHeadersMiddleware
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -48,6 +49,9 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+# Middleware para reconocer headers de proxy (X-Forwarded-Proto)
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 # Middleware para manejar redirecciones
 # app.add_middleware(NoRedirectMiddleware)
