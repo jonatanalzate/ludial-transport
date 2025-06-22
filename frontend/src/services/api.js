@@ -3,6 +3,9 @@ import axios from 'axios';
 // Asegurarnos de que siempre usamos HTTPS en producción
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
+console.log('API_URL en runtime:', API_URL);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+
 let baseURL;
 if (process.env.NODE_ENV === 'production') {
   // En producción, siempre forzar HTTPS y quitar la barra final.
