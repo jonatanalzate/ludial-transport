@@ -1,15 +1,16 @@
+import os
+import logging
+from dotenv import load_dotenv
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
-import os
-from dotenv import load_dotenv
-import logging
-from fastapi.middleware.proxy_headers import ProxyHeadersMiddleware
+from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Cargar variables de entorno
 load_dotenv()
 
 # Importar modelos primero
@@ -32,15 +33,6 @@ from .routers import (
     novedades_router
 )
 
-# class NoRedirectMiddleware(BaseHTTPMiddleware):
-#     async def dispatch(self, request: Request, call_next):
-#         response = await call_next(request)
-#         if response.status_code in [301, 302, 307, 308]:
-#             location = response.headers.get('location', '')
-#             if location.startswith('http://'):
-#                 response.headers['location'] = location.replace('http://', 'https://')
-#         return response
-
 app = FastAPI(
     title="Sistema de Transporte",
     description="API para sistema de gestión de transporte",
@@ -52,9 +44,6 @@ app = FastAPI(
 
 # Middleware para reconocer headers de proxy (X-Forwarded-Proto)
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
-
-# Middleware para manejar redirecciones
-# app.add_middleware(NoRedirectMiddleware)
 
 # Configuración de CORS más permisiva para desarrollo y producción
 origins = os.getenv("CORS_ORIGINS", "https://ludial-transport.vercel.app,http://localhost:3000").split(",")
@@ -71,7 +60,8 @@ app.add_middleware(
 Base.metadata.create_all(bind=engine)
 
 # Incluir los routers
-for router in [auth_router, users_router, vehicles_router, routes_router, journeys_router, novedades_router]:
+todos_routers = [auth_router, users_router, vehicles_router, routes_router, journeys_router, novedades_router]
+for router in todos_routers:
     app.include_router(router)
 
 @app.get("/")
@@ -83,19 +73,8 @@ def read_root():
 
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
-    # Log de la petición entrante
-    # logger.info(f"Request: {request.method} {request.url}")
-    # logger.info(f"Headers: {request.headers}")
-    
     response = await call_next(request)
-    
-    # Log de la respuesta
-    # logger.info(f"Response status: {response.status_code}")
-    # logger.info(f"Response headers: {response.headers}")
-    
-    # Agregar headers de seguridad
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     if "origin" in request.headers and request.headers["origin"] in origins:
         response.headers["Access-Control-Allow-Origin"] = request.headers["origin"]
-    
     return response
