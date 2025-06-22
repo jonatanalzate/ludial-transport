@@ -36,8 +36,7 @@ class RoutesCreateBulk(BaseModel):
 
 router = APIRouter(
     prefix="/rutas",
-    tags=["Rutas"],
-    redirect_slashes=False
+    tags=["Rutas"]
 )
 
 @router.post("", response_model=RouteResponse, dependencies=[Depends(check_admin_access)])

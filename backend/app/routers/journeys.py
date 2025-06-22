@@ -67,8 +67,7 @@ class FinalizarTrayectoRequest(BaseModel):
 
 router = APIRouter(
     prefix="/trayectos",
-    tags=["Trayectos"],
-    redirect_slashes=False
+    tags=["Trayectos"]
 )
 
 def prepare_journey_response(trayecto: Journey, db: Session) -> dict:

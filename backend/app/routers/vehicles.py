@@ -46,8 +46,7 @@ class PicoYPlacaConfigSchema(BaseModel):
 
 router = APIRouter(
     prefix="/vehiculos",
-    tags=["Vehículos"],
-    redirect_slashes=False
+    tags=["Vehículos"]
 )
 
 @router.post("", response_model=VehicleResponse)
