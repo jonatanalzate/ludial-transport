@@ -128,14 +128,25 @@ async def eliminar_vehiculo(vehiculo_id: int, db: Session = Depends(get_db)):
 
 @router.get("/pico-y-placa-config", response_model=PicoYPlacaConfigSchema)
 async def get_pico_y_placa_config(db: Session = Depends(get_db)):
+    default = {"1": ["0", "1"], "2": ["2", "3"], "3": ["4"], "4": ["5", "6"], "5": ["7", "8"], "6": ["9"], "0": []}
     config = db.query(PicoYPlacaConfig).first()
+    needs_update = False
+
     if not config:
-        # Valor por defecto si no existe
-        default = {"1": ["0", "1"], "2": ["2", "3"], "3": ["4"], "4": ["5", "6"], "5": ["7", "8"], "6": ["9"], "0": []}
         config = PicoYPlacaConfig(config=default)
         db.add(config)
         db.commit()
         db.refresh(config)
+    else:
+        # Si el campo config es None, vacío o no es un dict válido, lo repara
+        if not config.config or not isinstance(config.config, dict):
+            config.config = default
+            needs_update = True
+
+    if needs_update:
+        db.commit()
+        db.refresh(config)
+
     return config
 
 @router.put("/pico-y-placa-config", response_model=PicoYPlacaConfigSchema)
