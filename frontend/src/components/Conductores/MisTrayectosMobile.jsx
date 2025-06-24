@@ -55,6 +55,10 @@ const MisTrayectosMobile = () => {
   const [selectedTrayecto, setSelectedTrayecto] = useState(null);
   const [historialOpen, setHistorialOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
+  const [geoStatus, setGeoStatus] = useState('pending'); // 'pending', 'active', 'denied', 'error'
+  const [geoError, setGeoError] = useState('');
+  const intervalRef = React.useRef(null);
+  const [geoWatcher, setGeoWatcher] = useState(null);
 
   const userRole = localStorage.getItem('role');
   const userId = parseInt(localStorage.getItem('user_id'));
@@ -93,9 +97,37 @@ const MisTrayectosMobile = () => {
   useEffect(() => {
     let watchId;
     if (trayectoEnCurso) {
-      if ("geolocation" in navigator) {
+      // Polling cada 10s
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = setInterval(() => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              setGeoStatus('active');
+              setGeoError('');
+              api.enviarUbicacion({
+                conductor_id: userId,
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+              });
+            },
+            (err) => {
+              setGeoStatus('denied');
+              setGeoError('Debes permitir el acceso a la ubicación para ser monitoreado.');
+            }
+          );
+        } else {
+          setGeoStatus('error');
+          setGeoError('Tu dispositivo no soporta geolocalización.');
+        }
+      }, 10000);
+      // Watcher
+      if (geoWatcher) navigator.geolocation.clearWatch(geoWatcher);
+      if (navigator.geolocation) {
         watchId = navigator.geolocation.watchPosition(
           (position) => {
+            setGeoStatus('active');
+            setGeoError('');
             api.enviarUbicacion({
               conductor_id: userId,
               lat: position.coords.latitude,
@@ -103,16 +135,23 @@ const MisTrayectosMobile = () => {
             });
           },
           (error) => {
-            setSnackbar({ open: true, message: 'Error de geolocalización: ' + error.message, severity: 'error' });
+            setGeoStatus('denied');
+            setGeoError('Debes permitir el acceso a la ubicación para ser monitoreado.');
           },
           { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
         );
+        setGeoWatcher(watchId);
       } else {
-        setSnackbar({ open: true, message: 'Geolocalización no soportada en este dispositivo', severity: 'error' });
+        setGeoStatus('error');
+        setGeoError('Tu dispositivo no soporta geolocalización.');
       }
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (geoWatcher) navigator.geolocation.clearWatch(geoWatcher);
     }
     return () => {
-      if (watchId) navigator.geolocation.clearWatch(watchId);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (geoWatcher) navigator.geolocation.clearWatch(geoWatcher);
     };
   }, [trayectoEnCurso, userId]);
 
@@ -120,6 +159,29 @@ const MisTrayectosMobile = () => {
   const handleIniciarTrayecto = async (id) => {
     try {
       await api.iniciarTrayecto(id);
+      // Esperar un poco para que el backend actualice el estado
+      await new Promise(resolve => setTimeout(resolve, 500));
+      // Forzar envío inmediato de ubicación
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            setGeoStatus('active');
+            setGeoError('');
+            api.enviarUbicacion({
+              conductor_id: userId,
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude
+            });
+          },
+          (err) => {
+            setGeoStatus('denied');
+            setGeoError('Debes permitir el acceso a la ubicación para ser monitoreado.');
+          }
+        );
+      } else {
+        setGeoStatus('error');
+        setGeoError('Tu dispositivo no soporta geolocalización.');
+      }
       setSnackbar({ open: true, message: 'Trayecto iniciado', severity: 'success' });
       fetchTrayectos();
     } catch (error) {
@@ -436,6 +498,15 @@ const MisTrayectosMobile = () => {
       >
         <Alert severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}
+        </Alert>
+      </Snackbar>
+
+      {/* Feedback visual persistente sobre geolocalización */}
+      <Snackbar open={geoStatus !== 'active'} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+        <Alert severity={geoStatus === 'denied' ? 'error' : 'info'} sx={{ width: '100%' }}>
+          {geoStatus === 'pending' && 'Solicitando permiso de ubicación...'}
+          {geoStatus === 'denied' && geoError}
+          {geoStatus === 'error' && geoError}
         </Alert>
       </Snackbar>
     </Box>
