@@ -27,13 +27,13 @@ import { differenceInDays, parseISO } from 'date-fns';
 const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
 const defaultPicoYPlacaConfig = {
-  1: ['0', '1'], // Lunes
-  2: ['2', '3'], // Martes
-  3: ['4'],      // Miércoles
-  4: ['5', '6'], // Jueves
-  5: ['7', '8'], // Viernes
-  6: ['9'],      // Sábado
-  0: []          // Domingo
+  "0": [], // Domingo
+  "1": ["0", "1"], // Lunes
+  "2": ["2", "3"], // Martes
+  "3": ["4"],      // Miércoles
+  "4": ["5", "6"], // Jueves
+  "5": ["7", "8"], // Viernes
+  "6": ["9"]       // Sábado
 };
 
 const VehiculosList = () => {
@@ -94,7 +94,7 @@ const VehiculosList = () => {
         configToSend[String(key)] = configDraft[key];
       });
       await api.updatePicoYPlacaConfig({ config: configToSend });
-      setPicoYPlacaConfig({ ...configDraft });
+      setPicoYPlacaConfig({ ...configToSend });
       setConfigOpen(false);
     } catch (e) {
       alert('Error al guardar la configuración de pico y placa');
@@ -220,7 +220,7 @@ const VehiculosList = () => {
   const getHoyPicoYPlaca = () => {
     const hoy = new Date();
     const dia = hoy.getDay(); // 0=Domingo, 1=Lunes, ...
-    return picoYPlacaConfig[dia] || [];
+    return picoYPlacaConfig[String(dia)] || [];
   };
 
   const isEnPicoYPlaca = (vehiculo) => {
@@ -492,7 +492,7 @@ const VehiculosList = () => {
               fullWidth
               label={dia}
               margin="normal"
-              value={configDraft[idx]?.join(',') || ''}
+              value={configDraft[String(idx)]?.join(',') || ''}
               onChange={(e) => handleConfigChange(idx, e.target.value)}
               helperText="Separar dígitos por coma o espacio"
               disabled={loadingConfig || savingConfig}

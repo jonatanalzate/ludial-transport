@@ -31,31 +31,6 @@ const Monitoreo = () => {
       zoom: 13
     });
 
-    map.current.on('load', () => {
-      // Agregar capa de tráfico
-      map.current.addSource('mapbox-traffic', {
-        type: 'vector',
-        url: 'mapbox://mapbox.mapbox-traffic-v1'
-      });
-
-      map.current.addLayer({
-        id: 'traffic-layer',
-        type: 'line',
-        source: 'mapbox-traffic',
-        'source-layer': 'traffic',
-        paint: {
-          'line-width': 2,
-          'line-color': [
-            'case',
-            ['==', ['get', 'congestion'], 'low'], '#00ff00',
-            ['==', ['get', 'congestion'], 'moderate'], '#ffff00',
-            ['==', ['get', 'congestion'], 'heavy'], '#ff0000',
-            '#ff0000'
-          ]
-        }
-      });
-    });
-
     return () => map.current?.remove();
   }, []);
 

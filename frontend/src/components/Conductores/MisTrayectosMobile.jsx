@@ -200,7 +200,7 @@ const MisTrayectosMobile = () => {
                 </Box>
                 <Box>
                   <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                    Salida: {new Date((trayectoEnCurso || proximoTrayecto).fecha_salida).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota' })}
+                    Salida: {(trayectoEnCurso || proximoTrayecto)?.fecha_salida ? new Date((trayectoEnCurso || proximoTrayecto).fecha_salida).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota' }) : '—:—'}
                   </Typography>
                 </Box>
               </Stack>
@@ -268,7 +268,7 @@ const MisTrayectosMobile = () => {
                   </Box>
                   <Box>
                     <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                      Salida: {new Date(t.fecha_salida).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota' })}
+                      Salida: {t.fecha_salida ? new Date(t.fecha_salida).toLocaleTimeString('es-CO', { timeZone: 'America/Bogota' }) : '—:—'}
                     </Typography>
                   </Box>
                 </Stack>
