@@ -89,6 +89,33 @@ const MisTrayectosMobile = () => {
     .sort((a, b) => new Date(b.fecha_llegada) - new Date(a.fecha_llegada))
     .slice(0, 5);
 
+  // Enviar ubicación en tiempo real cuando hay trayecto en curso
+  useEffect(() => {
+    let watchId;
+    if (trayectoEnCurso) {
+      if ("geolocation" in navigator) {
+        watchId = navigator.geolocation.watchPosition(
+          (position) => {
+            api.enviarUbicacion({
+              conductor_id: userId,
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            });
+          },
+          (error) => {
+            setSnackbar({ open: true, message: 'Error de geolocalización: ' + error.message, severity: 'error' });
+          },
+          { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
+        );
+      } else {
+        setSnackbar({ open: true, message: 'Geolocalización no soportada en este dispositivo', severity: 'error' });
+      }
+    }
+    return () => {
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+    };
+  }, [trayectoEnCurso, userId]);
+
   // Acciones trayecto
   const handleIniciarTrayecto = async (id) => {
     try {
