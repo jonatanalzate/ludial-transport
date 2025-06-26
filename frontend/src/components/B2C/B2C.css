@@ -1,0 +1,41 @@
+.b2c-home, .b2c-monitoreo, .b2c-fidelizacion, .b2c-contacto {
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  font-family: 'Inter', Arial, sans-serif;
+}
+.b2c-home h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+.b2c-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.b2c-nav a {
+  background: #1976d2;
+  color: #fff;
+  padding: 0.75rem;
+  border-radius: 8px;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+.b2c-nav a:hover {
+  background: #1565c0;
+}
+@media (max-width: 600px) {
+  .b2c-home, .b2c-monitoreo, .b2c-fidelizacion, .b2c-contacto {
+    padding: 1rem;
+    margin: 1rem;
+  }
+  .b2c-home h1 {
+    font-size: 1.3rem;
+  }
+} 

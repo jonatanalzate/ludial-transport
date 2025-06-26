@@ -66,7 +66,7 @@ axiosInstance.interceptors.response.use(
 // Funciones de la API
 export const api = {
   // Trayectos
-  getTrayectos: () => axiosInstance.get('/trayectos'),
+  getTrayectos: (params = {}) => axiosInstance.get('/trayectos', { params }),
   createTrayecto: (data) => axiosInstance.post('/trayectos', data),
   iniciarTrayecto: (id) => axiosInstance.post(`/trayectos/${id}/iniciar`),
   detenerTrayecto: (id) => axiosInstance.post(`/trayectos/${id}/detener`),
@@ -106,7 +106,7 @@ export const api = {
   createUsuariosBulk: (data) => axiosInstance.post('/usuarios/bulk', data),
 
   // Novedades
-  getNovedades: () => axiosInstance.get('/novedades'),
+  getNovedades: (params = {}) => axiosInstance.get('/novedades', { params }),
   reportarNovedad: (data) => axiosInstance.post('/novedades', data),
   getNovedadesStats: () => axiosInstance.get('/novedades/stats'),
 

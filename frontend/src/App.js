@@ -14,6 +14,10 @@ import Configuracion from './components/Configuracion/Configuracion';
 import AnaliticaList from './components/Analitica/AnaliticaList';
 import Monitoreo from './components/Monitoreo/Monitoreo';
 import MisTrayectosMobile from './components/Conductores/MisTrayectosMobile';
+import B2CHome from './components/B2C/B2CHome';
+import MonitoreoRuta from './components/B2C/MonitoreoRuta';
+import Fidelizacion from './components/B2C/Fidelizacion';
+import Contacto from './components/B2C/Contacto';
 
 function App() {
   return (
@@ -55,6 +59,10 @@ function App() {
             }
           />
         ))}
+        <Route path="/b2c" element={<B2CHome />} />
+        <Route path="/b2c/monitoreo" element={<MonitoreoRuta />} />
+        <Route path="/b2c/fidelizacion" element={<Fidelizacion />} />
+        <Route path="/b2c/contacto" element={<Contacto />} />
       </Routes>
     </Router>
   );
