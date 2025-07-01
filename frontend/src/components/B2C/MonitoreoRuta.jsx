@@ -172,7 +172,10 @@ const MonitoreoRuta = () => {
                   <span>Última posición: {u.lat}, {u.lng} ({u.timestamp ? new Date(u.timestamp).toLocaleTimeString() : 'sin hora'})</span>
                 </div>
               ))}
-              <div ref={mapContainer} style={{width: '100%', height: 400, borderRadius: 8, marginTop: 10}} />
+              {/* Contenedor padre para asegurar tamaño */}
+              <div style={{ width: '100%', height: 400, borderRadius: 8, marginTop: 10, background: '#e0e0e0' }}>
+                <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
+              </div>
               <p>Tiempo estimado de llegada: 5 min (demo)</p>
             </div>
           ) : (
