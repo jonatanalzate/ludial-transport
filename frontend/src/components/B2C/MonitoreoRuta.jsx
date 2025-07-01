@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import * as turf from '@turf/turf';
 import { api } from '../../services/api';
+import { Box, Typography, Card, CardContent, Stack, Select, MenuItem, CircularProgress, Alert } from '@mui/material';
 
 // Token de Mapbox (mismo que en monitoreo)
 mapboxgl.accessToken = 'pk.eyJ1Ijoiam9uYXRhbmFsemF0ZSIsImEiOiJjbWIzbHpseWMwdjFiMmlwdmlnOWxpanJlIn0.f9HnAG8fxbXcRjWPphld1Q';
@@ -29,7 +30,7 @@ const MonitoreoRuta = () => {
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/navigation-night-v1',
+      style: 'mapbox://styles/mapbox/streets-v11',
       center: manizalesCoords,
       zoom: 13
     });
@@ -151,39 +152,47 @@ const MonitoreoRuta = () => {
   }, [ubicaciones]);
 
   return (
-    <div className="b2c-monitoreo">
-      <h2>Monitoreo de Ruta</h2>
-      {error && <p style={{color: 'red'}}>{error}</p>}
-      <select onChange={e => setRutaSeleccionada(e.target.value)} value={rutaSeleccionada}>
-        <option value="" disabled>Selecciona una ruta</option>
-        {rutas.map(ruta => (
-          <option key={ruta.id} value={ruta.id}>{ruta.nombre} ({ruta.origen} → {ruta.destino})</option>
-        ))}
-      </select>
-      {loading && <p>Cargando ubicación...</p>}
-      {rutaSeleccionada && !loading && (
-        <div className="mapa-ejemplo">
-          <p>Mostrando ubicación en tiempo real para: <b>{rutas.find(r => r.id === parseInt(rutaSeleccionada))?.nombre}</b></p>
-          {ubicaciones.length > 0 ? (
-            <div>
-              {ubicaciones.map((u, idx) => (
-                <div key={idx} style={{marginBottom: 8}}>
-                  <span>Bus: <b>{u.placa_vehiculo}</b> | Conductor: <b>{u.nombre_conductor}</b></span><br/>
-                  <span>Última posición: {u.lat}, {u.lng} ({u.timestamp ? new Date(u.timestamp).toLocaleTimeString() : 'sin hora'})</span>
-                </div>
-              ))}
-              {/* Contenedor padre para asegurar tamaño */}
-              <div style={{ width: '100%', height: 400, borderRadius: 8, marginTop: 10, background: '#e0e0e0' }}>
-                <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
-              </div>
-              <p>Tiempo estimado de llegada: 5 min (demo)</p>
-            </div>
-          ) : (
-            <p>No hay buses en ruta actualmente.</p>
-          )}
-        </div>
-      )}
-    </div>
+    <Box sx={{ bgcolor: '#181c24', minHeight: '100vh', color: 'white', p: 2 }}>
+      <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, color: '#90caf9' }}>
+        Monitoreo de Ruta
+      </Typography>
+      <Card sx={{ mb: 3, bgcolor: '#23293a', color: 'white', borderRadius: 3, boxShadow: 4, p: 2 }}>
+        <CardContent>
+          <Stack spacing={2}>
+            <Box>
+              <Typography variant="subtitle1" sx={{ color: '#90caf9', mb: 1 }}>
+                Selecciona una ruta
+              </Typography>
+              <Select
+                value={rutaSeleccionada}
+                onChange={e => setRutaSeleccionada(e.target.value)}
+                displayEmpty
+                sx={{ bgcolor: '#101828', color: 'white', borderRadius: 2, minWidth: 220 }}
+                inputProps={{ 'aria-label': 'Selecciona una ruta' }}
+              >
+                <MenuItem value="" disabled>Selecciona una ruta</MenuItem>
+                {rutas.map(ruta => (
+                  <MenuItem key={ruta.id} value={ruta.id}>{ruta.nombre} ({ruta.origen} → {ruta.destino})</MenuItem>
+                ))}
+              </Select>
+            </Box>
+            {loading && <CircularProgress color="info" sx={{ mt: 2 }} />}
+            {error && <Alert severity="error">{error}</Alert>}
+            {rutaSeleccionada && !loading && (
+              <>
+                <Card sx={{ bgcolor: '#101828', color: 'white', borderRadius: 2, boxShadow: 2, mb: 2 }}>
+                  <CardContent>
+                    <Box sx={{ width: '100%', height: 400, borderRadius: 2, mt: 2, background: '#e0e0e0', overflow: 'hidden' }}>
+                      <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
+    </Box>
   );
 };
 
