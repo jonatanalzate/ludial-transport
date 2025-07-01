@@ -178,17 +178,13 @@ const MonitoreoRuta = () => {
             </Box>
             {loading && <CircularProgress color="info" sx={{ mt: 2 }} />}
             {error && <Alert severity="error">{error}</Alert>}
-            {rutaSeleccionada && !loading && (
-              <>
-                <Card sx={{ bgcolor: '#101828', color: 'white', borderRadius: 2, boxShadow: 2, mb: 2 }}>
-                  <CardContent>
-                    <Box sx={{ width: '100%', height: 400, borderRadius: 2, mt: 2, background: '#e0e0e0', overflow: 'hidden' }}>
-                      <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </>
-            )}
+            <Card sx={{ bgcolor: '#101828', color: 'white', borderRadius: 2, boxShadow: 2, mb: 2 }}>
+              <CardContent>
+                <Box sx={{ width: '100%', height: 400, borderRadius: 2, mt: 2, background: '#e0e0e0', overflow: 'hidden' }}>
+                  <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
+                </Box>
+              </CardContent>
+            </Card>
           </Stack>
         </CardContent>
       </Card>
