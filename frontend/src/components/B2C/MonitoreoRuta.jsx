@@ -45,20 +45,28 @@ const MonitoreoRuta = () => {
       .catch(() => setError('No se pudieron cargar las rutas activas.'));
   }, []);
 
-  // Cargar ubicaciones cuando cambie la ruta seleccionada
+  // Cargar ubicaciones periódicamente cuando cambie la ruta seleccionada
   useEffect(() => {
     if (!rutaSeleccionada) return;
     setLoading(true);
-    api.getUbicaciones()
-      .then(res => {
-        const ubicacionesFiltradas = res.data.filter(u => u.ruta_id === parseInt(rutaSeleccionada));
-        setUbicaciones(ubicacionesFiltradas);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError('No se pudo obtener la ubicación del bus.');
-        setLoading(false);
-      });
+
+    const fetchUbicaciones = () => {
+      api.getUbicaciones()
+        .then(res => {
+          const ubicacionesFiltradas = res.data.filter(u => u.ruta_id === parseInt(rutaSeleccionada));
+          setUbicaciones(ubicacionesFiltradas);
+          setLoading(false);
+        })
+        .catch(() => {
+          setError('No se pudo obtener la ubicación del bus.');
+          setLoading(false);
+        });
+    };
+
+    fetchUbicaciones();
+    const interval = setInterval(fetchUbicaciones, 5000); // Actualiza cada 5 segundos
+
+    return () => clearInterval(interval);
   }, [rutaSeleccionada]);
 
   // Actualizar mapa con ubicaciones
