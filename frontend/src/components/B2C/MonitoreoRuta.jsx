@@ -23,9 +23,9 @@ const MonitoreoRuta = () => {
   const markers = useRef({});
   const routes = useRef({});
 
-  // Inicializar mapa
+  // Inicializar mapa SOLO cuando el ref esté disponible
   useEffect(() => {
-    if (map.current) return;
+    if (map.current || !mapContainer.current) return;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -35,7 +35,7 @@ const MonitoreoRuta = () => {
     });
 
     return () => map.current?.remove();
-  }, []);
+  }, [mapContainer]);
 
   // Cargar rutas
   useEffect(() => {
