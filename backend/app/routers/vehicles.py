@@ -146,7 +146,7 @@ async def get_pico_y_placa_config(db: Session = Depends(get_db)):
         db.commit()
         db.refresh(config)
 
-    return config
+    return {"config": config.config}
 
 @router.put("/pico-y-placa-config", response_model=PicoYPlacaConfigSchema)
 async def update_pico_y_placa_config(data: PicoYPlacaConfigSchema = Body(...), db: Session = Depends(get_db)):
